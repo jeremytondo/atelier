@@ -1,2 +1,1 @@
-# This is a test .zshrc file
-
+# This is a test .zshrc file.
