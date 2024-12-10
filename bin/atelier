@@ -1,3 +1,10 @@
 #!/bin/bash
 
+# Get the absolute path of the script
+script_dir=$(dirname "$(readlink -f "$0")")
+
+echo $script_dir
+
+source $script_dir/scripts/shared.sh
+
 echo "Atelier"
