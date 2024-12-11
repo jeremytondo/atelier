@@ -2,3 +2,4 @@
 
 # Config files to ignore.
 config/.config/gh/hosts.yml
+config/.config/tmux/plugins
