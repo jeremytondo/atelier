@@ -3,7 +3,10 @@
 # Creates a simlink to the Atelier executable in the .local/bin directory.
 # This makes it easy to run the app from the command like.
 
-INSTALL_DIR="~/.local/bin"
+# TODO: Rework how the install directory is calculated as this currently
+# doesn't work.
 
-mkdir -p $INSTALL_DIR
-ln -s ~/projects/atelier/bin/atelier $INSTALL_DIR/atelier
+# INSTALL_DIR="~/.local/bin"
+#
+# mkdir -p $INSTALL_DIR
+# ln -s ~/projects/atelier/bin/atelier $INSTALL_DIR/atelier
