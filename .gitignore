@@ -1,1 +1,4 @@
 .git
+
+# Config files to ignore.
+.config/gh/hosts.yaml
