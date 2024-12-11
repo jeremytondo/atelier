@@ -9,7 +9,6 @@ echo "This is a test message"
 
 # Setup zsh configs.
 # [ -f ~/.zshrc ] && mv ~/.zshrc ~/.zshrc.bak
-# cp $SCRIPT_DIR/config/.zshrc ~/.zshrc
 
 # Load the PATH for use later in the installers
 # source ~/.local/share/omakub/defaults/bash/shell
