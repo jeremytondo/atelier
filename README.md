@@ -7,6 +7,12 @@ setup a development environment on a new machine. I was inspired by Omakub
 and essentially copied a lot of it to get this up and running. All of the setup
 and config reflects how I like having my development environment set up.
 
+## Install
+Run the following script and then reboot.
+```bash
+wget -qO- https://raw.githubusercontent.com/jeremytondo/atelier/main/boot.sh | bash
+```
+
 ## Config
 The config directory contains the dotfiles used to configure all of
 the applications. GNU Stow is used to create and manage symlinks that
