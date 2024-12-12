@@ -4,7 +4,8 @@
 set -e
 
 # Directory the install.sh file is in at the time it is run.
-SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+# SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+SCRIPT_DIR=$HOME/.local/share/atelier
 
 # Includes some shared scripts needed for the install process.
 source $SCRIPT_DIR/bin/scripts/shared.sh
