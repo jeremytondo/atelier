@@ -1,6 +1,12 @@
 # Atelier
 Opinionated development environment setup and management
 
+## Overview
+I do a lot of development on remote VMs and I wanted a way to quickly and easily
+setup a development environment on a new machine. I was inspired by Omakub
+and essentially copied a lot of it to get this up and running. All of the setup
+and config reflects how I like having my development environment set up.
+
 ## Config
 The config directory contains the dotfiles used to configure all of
 the applications. GNU Stow is used to create and manage symlinks that
