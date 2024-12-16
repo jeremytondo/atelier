@@ -1,10 +1,19 @@
 #!/bin/bash
 
 # Get the absolute path of the script
-script_dir=$(dirname "$(readlink -f "$0")")
+SCRIPT_DIR=$HOME/.local/share/atelier
 
-echo $script_dir
+for script in $SCRIPT_DIR/bin/scripts/*.sh; do source $script; done
 
-source $script_dir/scripts/shared.sh
-
-echo "Atelier"
+case "$1" in
+"dev" | "d")
+  dev
+  ;;
+"")
+  # If no commands are passed, just run the main command.
+  ;;
+*)
+  # Default case: Handle any other input
+  echo "Unrecognized command: $1"
+  ;;
+esac
