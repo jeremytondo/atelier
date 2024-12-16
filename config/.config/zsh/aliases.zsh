@@ -20,6 +20,7 @@ alias r='rails'
 alias bat='batcat'
 alias lzg='lazygit'
 alias lzd='lazydocker'
+alias at='atelier'
 
 # Git
 alias gcm='git commit -m'
