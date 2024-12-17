@@ -5,6 +5,7 @@ SCRIPT_DIR=$HOME/.local/share/atelier
 
 for script in $SCRIPT_DIR/bin/scripts/*.sh; do source $script; done
 
+# Send commands to the proper place.
 case "$1" in
 "project" | "p")
   project $2
