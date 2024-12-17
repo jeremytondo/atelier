@@ -28,3 +28,7 @@ for app in $SCRIPT_DIR/install/terminal/*.sh; do source $app; done
 
 # Use GNU Stow to to link configs to home directory.
 stow . -d $SCRIPT_DIR/config -t ~/
+
+# Install global programmig languages witn mise.
+mise use --global node@lts
+mise use --global go@latest
