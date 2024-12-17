@@ -1,6 +1,6 @@
 PROJECTS_FOLDER=$HOME/projects
 
-dev() {
+project() {
   project_name=$1
   project_folder=$PROJECTS_FOLDER/$project_name
 

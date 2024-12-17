@@ -6,8 +6,8 @@ SCRIPT_DIR=$HOME/.local/share/atelier
 for script in $SCRIPT_DIR/bin/scripts/*.sh; do source $script; done
 
 case "$1" in
-"dev" | "d")
-  dev $2
+"project" | "p")
+  project $2
   ;;
 "")
   # If no commands are passed, just run the main command.
