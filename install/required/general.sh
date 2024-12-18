@@ -5,5 +5,5 @@
 if [[ $OS == "Linux" ]]; then
   sudo apt install -y curl git unzip stow
 else
-  brew instal stow -y
+  brew instal stow
 fi
