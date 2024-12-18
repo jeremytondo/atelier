@@ -14,4 +14,4 @@ sudo apt install zsh -y
 sudo chsh -s $(which zsh) $USER
 
 # Load the PATH for use later in the installers
-source ~/.zshrc
+# source ~/.zshrc
