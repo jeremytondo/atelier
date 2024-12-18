@@ -14,5 +14,5 @@ if [[ "$OS" == "Linux" ]]; then
 else
   brew install fzf ripgrep bat eza zoxide btop tldr
 
-  brew install pkg-config autoconf bison libvips imagemagick mupdf mupdf-tools sqlite3
+  brew install pkg-config autoconf bison libvips imagemagick mupdf sqlite3
 fi
