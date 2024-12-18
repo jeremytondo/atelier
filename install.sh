@@ -16,29 +16,34 @@ source $SCRIPT_DIR/bin/scripts/shared.sh
 if [[ "$OS" == "Linux" ]]; then
   echo "Linux"
   # Ensure everything is update before beginning installation.
-  # sudo apt update -y
-  # sudo apt upgrade -y
-fi
-
-if [[ "$OS" == "Darwin" ]]; then
-  echo "MacOS"
+  sudo apt update -y
+  sudo apt upgrade -y
 fi
 
 # Installs required apps needed for the rest of the install process.
 for app in $SCRIPT_DIR/install/required/*.sh; do source $app; done
 
-# Install Linux terminal apps.
-# for app in $SCRIPT_DIR/install/terminal/*.sh; do source $app; done
+# Install ZSH on Linux.
+if [[ "$OS" == "Linux" ]]; then
+  source $SCRIPT_DIR/install/zsh/zsh.sh
+fi
+
+# Install apps.
+for app in $SCRIPT_DIR/install/apps/*.sh; do source $app; done
 
 # INSTALL CONFIGS
 
 # Backup existing configs.
-# [ -f "~/.zshrc" ] && mv ~/.zshrc ~/.zshrc.bak
-# [ -d "~/.config" ] && mv ~/.bashrc ~/.bashrc.bak
+mkdir ~/config.bak
+[ -f "~/.zshrc" ] && mv ~/.zshrc ~/config.bak
+
+if [[ -d "~/.config" ]]; then
+  mv ~/.config ~/config.bak
+fi
 
 # Use GNU Stow to to link configs to home directory.
-# stow . -d $SCRIPT_DIR/config -t ~/
+stow . -d $SCRIPT_DIR/config -t ~/
 
 # Install global programmig languages witn mise.
-# mise use --global node@lts
-# mise use --global go@latest
+mise use --global node@lts
+mise use --global go@latest
