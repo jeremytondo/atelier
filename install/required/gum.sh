@@ -9,5 +9,5 @@ if [[ $OS == "Linux" ]]; then
   rm gum.deb
   cd -
 else
-  brew install gum@$GUM_VERSION
+  brew install gum
 fi
