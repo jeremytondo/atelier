@@ -25,7 +25,7 @@ if [[ "$OS" == "Darwin" ]]; then
 fi
 
 # Installs required apps needed for the rest of the install process.
-# for app in $SCRIPT_DIR/install/required/*.sh; do source $app; done
+for app in $SCRIPT_DIR/install/required/*.sh; do source $app; done
 
 # Install Linux terminal apps.
 # for app in $SCRIPT_DIR/install/terminal/*.sh; do source $app; done
