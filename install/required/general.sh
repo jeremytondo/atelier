@@ -2,5 +2,8 @@
 
 # Some general utility apps needed during the install process.
 
-echo "$OS and more"
-# sudo apt install -y curl git unzip stow
+if [[ $OS == "Linux" ]]; then
+  sudo apt install -y curl git unzip stow
+else
+  brew instal stow -y
+fi
