@@ -15,9 +15,6 @@ export PATH=$PATH:/usr/local/go/bin:$HOME/.local/share/atelier/bin
 #   source /usr/share/doc/fzf/examples/key-bindings.zsh
 # fi
 
-# Set up fzf key bindings and fuzzy completion
-source <(fzf --zsh)
-
 # Init Mise environemnt manager.
 if command -v mise &> /dev/null; then
   eval "$(mise activate zsh)"
@@ -30,6 +27,9 @@ source ~/.local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 if [[ "$(uname -s)" == "Darwin" ]]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
+
+# Set up fzf key bindings and fuzzy completion
+source <(fzf --zsh)
 
 # Zoxide init must be at the end of this file. 
 if command -v zoxide &> /dev/null; then
