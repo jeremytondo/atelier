@@ -7,4 +7,6 @@ else
 fi
 
 # Install Tmux plugin manager.
-git clone https://github.com/tmux-plugins/tpm $SCRIPT_DIR/config/.config/tmux/plugins/tpm
+if ! [[ -d "$SCRIPT_DIR/config/.config/tmux/plugins/tpm" ]]; then
+  git clone https://github.com/tmux-plugins/tpm $SCRIPT_DIR/config/.config/tmux/plugins/tpm
+fi
