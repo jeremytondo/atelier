@@ -10,10 +10,13 @@ fi
 
 export PATH=$PATH:/usr/local/go/bin:$HOME/.local/share/atelier/bin
 
-if command -v fzf &> /dev/null; then
-  source /usr/share/doc/fzf/examples/completion.zsh
-  source /usr/share/doc/fzf/examples/key-bindings.zsh
-fi
+# if command -v fzf &> /dev/null; then
+#   source /usr/share/doc/fzf/examples/completion.zsh
+#   source /usr/share/doc/fzf/examples/key-bindings.zsh
+# fi
+
+# Set up fzf key bindings and fuzzy completion
+source <(fzf --zsh)
 
 # Init Mise environemnt manager.
 if command -v mise &> /dev/null; then
