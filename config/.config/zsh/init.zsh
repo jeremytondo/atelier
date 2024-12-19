@@ -15,10 +15,10 @@ export PATH=$PATH:/usr/local/go/bin:$HOME/.local/share/atelier/bin
 #   source /usr/share/doc/fzf/examples/key-bindings.zsh
 # fi
 
-# Init Mise environemnt manager.
-if command -v mise &> /dev/null; then
-  eval "$(mise activate zsh)"
-fi
+# # Init Mise environemnt manager.
+# if command -v mise &> /dev/null; then
+#   eval "$(mise activate zsh)"
+# fi
 
 # ZSH auto suggestions.
 source ~/.local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
@@ -27,6 +27,9 @@ source ~/.local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 if [[ "$(uname -s)" == "Darwin" ]]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
+
+# Init Mise environemnt manager.
+eval "$(~/.local/bin/mise activate zsh)"
 
 # Set up fzf key bindings and fuzzy completion
 source <(fzf --zsh)
