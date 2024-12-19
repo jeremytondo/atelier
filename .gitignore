@@ -4,3 +4,6 @@
 config/.config/gh/hosts.yml
 config/.config/tmux/plugins
 config/.config/go
+
+# System files
+.DS_Store
