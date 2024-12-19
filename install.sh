@@ -13,6 +13,14 @@ OS="$(uname -s)"
 # Includes some shared scripts needed for the install process.
 source $SCRIPT_DIR/bin/scripts/shared.sh
 
+# Backup existing configs.
+mkdir ~/config.bak
+[ -f "~/.zshrc" ] && mv ~/.zshrc ~/config.bak
+
+if [[ -d "~/.config" ]]; then
+  mv ~/.config ~/config.bak
+fi
+
 if [[ "$OS" == "Linux" ]]; then
   echo "Linux"
   # Ensure everything is update before beginning installation.
@@ -32,14 +40,6 @@ fi
 for app in $SCRIPT_DIR/install/apps/*.sh; do source $app; done
 
 # INSTALL CONFIGS
-
-# Backup existing configs.
-mkdir ~/config.bak
-[ -f "~/.zshrc" ] && mv ~/.zshrc ~/config.bak
-
-if [[ -d "~/.config" ]]; then
-  mv ~/.config ~/config.bak
-fi
 
 # Use GNU Stow to to link configs to home directory.
 stow . -d $SCRIPT_DIR/config -t ~/
