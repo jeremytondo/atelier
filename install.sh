@@ -15,9 +15,9 @@ source $SCRIPT_DIR/bin/scripts/shared.sh
 
 # Backup existing configs.
 mkdir ~/config.bak
-[ -f "~/.zshrc" ] && mv ~/.zshrc ~/config.bak
+[ -f "$HOME/.zshrc" ] && mv ~/.zshrc ~/config.bak
 
-if [[ -d "~/.config" ]]; then
+if [[ -d "$HOME/.config" ]]; then
   mv ~/.config ~/config.bak
 fi
 
