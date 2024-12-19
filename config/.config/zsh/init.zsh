@@ -24,5 +24,5 @@ if command -v mise &> /dev/null; then
 fi
 
 # ZSH auto suggestions.
-source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+source ~/.local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
