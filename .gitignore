@@ -1,9 +1,10 @@
 .git
 
-# Config files to ignore.
+# Config files and folders to ignore.
 config/.config/gh/hosts.yml
 config/.config/tmux/plugins
 config/.config/go
+config/.config/iterm2
 
 # System files
 .DS_Store
