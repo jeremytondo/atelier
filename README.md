@@ -3,7 +3,9 @@ Opinionated development environment setup and management
 
 ## Overview
 I do a lot of development on remote VMs and I wanted a way to quickly and easily
-setup a development environment on a new machine. I was inspired by [Omakub](https://github.com/basecamp/omakub)
+setup a development environment on a new machine. I also wanted to keep a similar
+setup on my Mac. So, I wanted this to work on MacOS and Ubuntu.
+I was inspired by [Omakub](https://github.com/basecamp/omakub)
 and essentially copied a lot of it to get this up and running. All of the setup
 and config reflects how I like having my development environment set up.
 
