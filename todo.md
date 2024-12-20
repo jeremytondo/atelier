@@ -1,5 +1,4 @@
 # To Do
 
 ## Mac Issues
-* LazyGit Issues
-* Assume there are LazyDocker issues as well 
+* fzf issues in zsh config on linux
