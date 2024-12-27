@@ -47,7 +47,7 @@ open_project() {
     tmux new-session -s $project_name -d -c ~/.local/share/atelier/ 'nvim .'
 
     # Create a new window
-    tmux new-window -t $project_name:2
+    tmux new-window -t $project_name:2 -c ~/.local/share/atelier/
 
     # Switch back the first window
     tmux select-window -t $project_name:1
