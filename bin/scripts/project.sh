@@ -1,4 +1,4 @@
-PROJECTS_FOLDER=$HOME/projects
+PROJECTS_FOLDER="$HOME/projects"
 
 project() {
   project_name=$1
@@ -38,16 +38,23 @@ project() {
 open_project() {
   project_name=$1
 
+  # Set the project directory
+  if [[ "$project_name" == "atelier" ]]; then
+    project_folder="$HOME/.local/share/atelier/"
+  else
+    project_folder="$HOME/projects/$project_name"
+  fi
+
   # Attempt to attach to the session, ignoring errors
   tmux attach-session -t $project_name 2>/dev/null
 
   # If the attachment fails, create a new session
   if [ $? -ne 0 ]; then
     # Create the session and open Neovim in the first window
-    tmux new-session -s $project_name -d -c ~/.local/share/atelier/ 'nvim .'
+    tmux new-session -s $project_name -d -c $project_folder 'nvim .'
 
     # Create a new window
-    tmux new-window -t $project_name:2 -c ~/.local/share/atelier/
+    tmux new-window -t $project_name:2 -c $project_folder
 
     # Switch back the first window
     tmux select-window -t $project_name:1
@@ -75,5 +82,5 @@ create_git_project() {
 
 create_empty_project() {
   project_name=$1
-  mkdir $PROJECTS_FOLDER/$project_name
+  mkdir -p "$PROJECTS_FOLDER/$project_name"
 }
