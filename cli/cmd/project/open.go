@@ -1,12 +1,14 @@
 package project
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
 // projectCmd represents the project command
-var ProjectCmd = &cobra.Command{
-	Use:   "project",
+var openCmd = &cobra.Command{
+	Use:   "open",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -14,15 +16,13 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	// Run: func(cmd *cobra.Command, args []string) {
-	// 	fmt.Println("project called")
-	// },
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("project open called")
+	},
 }
 
 func init() {
-	ProjectCmd.AddCommand(createCmd)
-	ProjectCmd.AddCommand(openCmd)
-	ProjectCmd.AddCommand(listCmd)
+	// rootCmd.AddCommand(projectCmd)
 
 	// Here you will define your flags and configuration settings.
 
