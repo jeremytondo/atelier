@@ -12,4 +12,5 @@ export PATH=$PATH:$HOME/.bin:$HOME/.local/bin:
 export PATH=$PATH:$HOME/.local/share/atelier/bin
 
 # Add go to path
-export PATH=$PATH:/usr/local/go/bin
+export GOPATH=$HOME/.local/share/go
+export PATH=$PATH:/usr/local/go/bin:$GOPATH
