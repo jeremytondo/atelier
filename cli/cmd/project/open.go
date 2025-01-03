@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 )
 
@@ -36,12 +37,21 @@ var openCmd = &cobra.Command{
 		// Check if the project exists.
 		_, err := os.Stat(projectPath)
 		if os.IsNotExist(err) {
-			// TODO: Eventually ask if user wants to create a project.
-			fmt.Println("Project does not exist.")
-			return
-		}
+			// If the project does not exist, offer to create it.
+			newProject := false
+			huh.NewConfirm().
+				Title("Project does not exist. Would you like to create it?").
+				Value(&newProject).
+				Run()
 
-		openProject(projectName, projectPath)
+			if newProject {
+				createProject(projectPath)
+				openProject(projectName, projectPath)
+			}
+		} else {
+			// If the project exists, open it.
+			openProject(projectName, projectPath)
+		}
 	},
 }
 
