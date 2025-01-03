@@ -15,6 +15,7 @@ func init() {
 	ProjectCmd.AddCommand(openCmd)
 	ProjectCmd.AddCommand(listCmd)
 
-	// Add an alias for the project command
+	// Command aliases
 	openCmd.Aliases = []string{"o"}
+	createCmd.Aliases = []string{"c"}
 }

@@ -2,6 +2,8 @@ package project
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -9,28 +11,35 @@ import (
 // projectCmd represents the project command
 var createCmd = &cobra.Command{
 	Use:   "create",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Create a new project",
+	Long: `
+  Creates a folder in the default projects directory and then opens the
+  project.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("project create called")
+		homeDir, _ := os.UserHomeDir()
+		projectsDir := "projects"
+		projectName, _ := cmd.Flags().GetString("name")
+		projectPath := filepath.Join(homeDir, projectsDir, projectName)
+
+		if err := createProject(projectPath); err != nil {
+			fmt.Println("There was an error creating the project", err)
+		} else {
+			fmt.Println("Project successfully created.")
+			openProject(projectName, projectPath)
+		}
 	},
 }
 
 func init() {
-	// rootCmd.AddCommand(projectCmd)
+	createCmd.Flags().StringP("name", "n", "", "Name of the project to create")
+	createCmd.MarkFlagRequired("name")
+}
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// projectCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// projectCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+func createProject(projectPath string) error {
+	err := os.Mkdir(projectPath, 0755) // Create the directory with read, write, and execute permissions
+	if err != nil {
+		fmt.Println("Error creating project:", err)
+		return err
+	}
+	return nil
 }
