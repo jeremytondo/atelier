@@ -11,13 +11,16 @@ import (
 
 var openCmd = &cobra.Command{
 	Use:   "open",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Open a project",
+	Long: `
+  Opens a project with the name passed in with the --name flag.
+  Opening a project will open a Tmux session with two windows. The first window
+  will open up nvim with the project loaded and the second window is a command
+  line in the project folder.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+  If the Tmux session of that name already exists, it will be opened, otherwise
+  a new session will be created.`,
+
 	Run: func(cmd *cobra.Command, args []string) {
 		homeDir, _ := os.UserHomeDir()
 		projectsDir := "projects"
@@ -44,6 +47,7 @@ to quickly create a Cobra application.`,
 
 func init() {
 	openCmd.Flags().StringP("name", "n", "", "Name of the project to open")
+	openCmd.MarkFlagRequired("name")
 }
 
 func openProject(projectName string, projectPath string) error {
@@ -77,17 +81,6 @@ func openProject(projectName string, projectPath string) error {
 	if err := runTmuxCmd(cmdSwitchToFirstWindow...); err != nil {
 		return fmt.Errorf("failed to switch window: %w", err)
 	}
-	// Create a new window
-	// cmd = exec.Command("tmux", "new-window", "-t", projectName+":2", "-c", projectFolder)
-	// if err := cmd.Run(); err != nil {
-	// 	return fmt.Errorf("failed to create new window: %w", err)
-	// }
-	//
-	// // Switch back the first window
-	// cmd = exec.Command("tmux", "select-window", "-t", projectName+":1")
-	// if err := cmd.Run(); err != nil {
-	// 	return fmt.Errorf("failed to switch to first window: %w", err)
-	// }
 
 	// Attach to the newly created session
 	return runTmuxCmd("attach-session", "-t", projectName)
