@@ -24,6 +24,10 @@ to quickly create a Cobra application.`,
 		projectName, _ := cmd.Flags().GetString("name")
 		projectPath := filepath.Join(homeDir, projectsDir, projectName)
 
+		// Handle the special use case when editing Atelier directly.
+		if projectName == "atelier" {
+			projectPath = filepath.Join(homeDir, ".local/share/atelier")
+		}
 		fmt.Println("project open called with name:", projectPath)
 
 		// Check if the project exists.
@@ -63,6 +67,27 @@ func openProject(projectName string, projectPath string) error {
 	if err := runTmuxCmd(args...); err != nil {
 		return fmt.Errorf("failed to create new session: %w", err)
 	}
+
+	cmdOpenTmuxWindow := []string{"new-window", "-t", projectName, "-c", projectPath}
+	if err := runTmuxCmd(cmdOpenTmuxWindow...); err != nil {
+		return fmt.Errorf("failed to open window: %w", err)
+	}
+
+	cmdSwitchToFirstWindow := []string{"select-window", "-t", projectName + ":1"}
+	if err := runTmuxCmd(cmdSwitchToFirstWindow...); err != nil {
+		return fmt.Errorf("failed to switch window: %w", err)
+	}
+	// Create a new window
+	// cmd = exec.Command("tmux", "new-window", "-t", projectName+":2", "-c", projectFolder)
+	// if err := cmd.Run(); err != nil {
+	// 	return fmt.Errorf("failed to create new window: %w", err)
+	// }
+	//
+	// // Switch back the first window
+	// cmd = exec.Command("tmux", "select-window", "-t", projectName+":1")
+	// if err := cmd.Run(); err != nil {
+	// 	return fmt.Errorf("failed to switch to first window: %w", err)
+	// }
 
 	// Attach to the newly created session
 	return runTmuxCmd("attach-session", "-t", projectName)
