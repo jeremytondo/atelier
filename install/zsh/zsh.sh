@@ -20,7 +20,7 @@ if [[ -f "~/.bash_history" ]]; then
 fi
 
 # Install ZSH
-sudo apt install zsh -y
+# sudo apt install zsh -y
 
 # Make ZSH the default shell
-sudo chsh -s $(which zsh) $USER
+# sudo chsh -s $(which zsh) $USER

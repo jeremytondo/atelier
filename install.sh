@@ -45,5 +45,5 @@ for app in $SCRIPT_DIR/install/apps/*.sh; do source $app; done
 stow . -d $SCRIPT_DIR/config -t ~/
 
 # Install global programmig languages witn mise.
-mise use --global node@lts
-mise use --global go@latest
+# mise use --global node@lts
+# mise use --global go@latest
