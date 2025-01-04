@@ -10,9 +10,6 @@ SCRIPT_DIR=$HOME/.local/share/atelier
 # OS type: Linux or Darwin (MacOS)
 OS="$(uname -s)"
 
-# Includes some shared scripts needed for the install process.
-source $SCRIPT_DIR/bin/scripts/shared.sh
-
 # Backup existing configs.
 mkdir ~/config.bak
 [ -f "$HOME/.zshrc" ] && mv ~/.zshrc ~/config.bak
