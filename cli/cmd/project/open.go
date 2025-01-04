@@ -11,21 +11,22 @@ import (
 )
 
 var openCmd = &cobra.Command{
-	Use:   "open",
+	Use:   "open [name]",
 	Short: "Open a project",
 	Long: `
-  Opens a project with the name passed in with the --name flag.
+  Opens a project with the name passed in first poritional argument.
   Opening a project will open a Tmux session with two windows. The first window
   will open up nvim with the project loaded and the second window is a command
   line in the project folder.
 
   If the Tmux session of that name already exists, it will be opened, otherwise
   a new session will be created.`,
-
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		homeDir, _ := os.UserHomeDir()
 		projectsDir := "projects"
-		projectName, _ := cmd.Flags().GetString("name")
+		// projectName, _ := cmd.Flags().GetString("name")
+		projectName := args[0]
 		projectPath := filepath.Join(homeDir, projectsDir, projectName)
 
 		// Handle the special use case when editing Atelier directly.
@@ -56,8 +57,8 @@ var openCmd = &cobra.Command{
 }
 
 func init() {
-	openCmd.Flags().StringP("name", "n", "", "Name of the project to open")
-	openCmd.MarkFlagRequired("name")
+	// openCmd.Flags().StringP("name", "n", "", "Name of the project to open")
+	// openCmd.MarkFlagRequired("name")
 }
 
 func openProject(projectName string, projectPath string) error {
