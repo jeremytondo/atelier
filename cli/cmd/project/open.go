@@ -21,11 +21,16 @@ var openCmd = &cobra.Command{
 
   If the Tmux session of that name already exists, it will be opened, otherwise
   a new session will be created.`,
-	Args: cobra.ExactArgs(1),
+	// Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		// If no name is passed, open the last project.
+		if len(args) == 0 {
+			openLastProject()
+			os.Exit(0)
+		}
+
 		homeDir, _ := os.UserHomeDir()
 		projectsDir := "projects"
-		// projectName, _ := cmd.Flags().GetString("name")
 		projectName := args[0]
 		projectPath := filepath.Join(homeDir, projectsDir, projectName)
 
@@ -95,4 +100,15 @@ func openProject(projectName string, projectPath string) error {
 
 	// Attach to the newly created session
 	return runTmuxCmd("attach-session", "-t", projectName)
+}
+
+func openLastProject() {
+	cmd := exec.Command("tmux", "attach")
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Failed to open tmux session %s\n", err)
+	}
 }
