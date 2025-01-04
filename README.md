@@ -1,6 +1,10 @@
 # Atelier
 Opinionated development environment setup and management
 
+## Lite Version
+This branch contains a "lite" version to use in my work environment. It removes
+some dependencies that are not available and/or not necessary in that environment.
+
 ## Overview
 I do a lot of development on remote VMs and I wanted a way to quickly and easily
 setup a development environment on a new machine. I also wanted to keep a similar
