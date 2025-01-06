@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Backup existing bash config.
-mkdir ~/.bash.bak
-
 if [[ -f "~/.bashrc" ]]; then
   mv ~/.bashrc ~/.bash.bak
 fi
