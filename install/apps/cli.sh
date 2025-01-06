@@ -5,7 +5,7 @@
 SUPPORTED_PLATFORMS=("darwin/amd64" "darwin/arm64" "linux/amd64")
 
 # Get OS and architecture
-OS=$(uname -s | tr '[:upper:]' '[:lower:]') # Converts to lowercase
+OSNAME=$(uname -s | tr '[:upper:]' '[:lower:]') # Converts to lowercase
 ARCH=$(uname -m)
 
 # Normalize architecture
@@ -19,11 +19,11 @@ arm64 | aarch64)
 esac
 
 # Current platform
-CURRENT_PLATFORM="$OS/$ARCH"
+CURRENT_PLATFORM="$OSNAME/$ARCH"
 
 # Check if the current platform is supported
 if [[ " ${SUPPORTED_PLATFORMS[*]} " =~ " $CURRENT_PLATFORM " ]]; then
-  source="$HOME/.local/share/atelier/cli/bin/atelier-$OS-$ARCH"
+  source="$HOME/.local/share/atelier/cli/bin/atelier-$OSNAME-$ARCH"
   symlink="$HOME/.local/bin"
 
   # Make sure the directory exists
