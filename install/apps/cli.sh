@@ -27,7 +27,7 @@ if [[ " ${SUPPORTED_PLATFORMS[*]} " =~ " $CURRENT_PLATFORM " ]]; then
   symlink="$HOME/.local/bin"
 
   # Remove existing installation if it exists.
-  rm "$HOME/.local/bin/atelier"
+  [ -f "$HOME/.local/bin/atelier" ] && rm "$HOME/.local/bin/atelier"
 
   # Make sure the directory exists
   mkdir -p "$symlink"
