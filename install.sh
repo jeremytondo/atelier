@@ -10,26 +10,33 @@ SCRIPT_DIR=$HOME/.local/share/atelier
 # OS type: Linux or Darwin (MacOS)
 OS="$(uname -s)"
 
-# Backup existing configs.
-mkdir ~/config.bak
-[ -f "$HOME/.zshrc" ] && mv ~/.zshrc ~/config.bak
+# Installs required apps needed for the rest of the install process.
+for app in $SCRIPT_DIR/install/required/*.sh; do source $app; done
 
-if [[ -d "$HOME/.config" ]]; then
-  mv ~/.config ~/config.bak
-fi
+# Backup existing configs.
+createBackups() {
+  rm -rf "$HOME/.config.bak"
+  rm -rf "$HOME/.bash.bak"
+
+  # If there is an existng zsh config, back it up.
+  [ -f "$HOME/.zshrc" ] && mv ~/.zshrc ~/config.bak
+
+  # If there is an existing .config directlry, back it up.
+  if [[ -d "$HOME/.config" ]]; then
+    mv ~/.config ~/config.bak
+  fi
+}
+confirm_message="This script will replace the folders ~/.config.bak and ~/.bash.bak. Are you sure you want to do this?"
+gum confirm "$confirm_message" && createBackups || echo "Not gonna do it"
 
 if [[ "$OS" == "Linux" ]]; then
-  echo "Linux"
   # Ensure everything is update before beginning installation.
   sudo apt update -y
   sudo apt upgrade -y
 fi
 
-# Installs required apps needed for the rest of the install process.
-for app in $SCRIPT_DIR/install/required/*.sh; do source $app; done
-
-# Install ZSH on Linux.
-if [[ "$OS" == "Linux" ]]; then
+# If zsh is not installed, install it.
+if ! command -v zsh &>/dev/null; then
   source $SCRIPT_DIR/install/zsh/zsh.sh
 fi
 
