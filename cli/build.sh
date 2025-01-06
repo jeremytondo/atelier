@@ -20,7 +20,7 @@ for PLATFORM in "${PLATFORMS[@]}"; do
   OUTPUT_PATH="$OUTPUT_DIR/$APP_NAME-$GOOS-$GOARCH"
 
   echo "Building for $GOOS/$GOARCH..."
-  env GOOS=$GOOS GOARCH=$GOARCH go build -o $OUTPUT_PATH ./cmd
+  env GOOS=$GOOS GOARCH=$GOARCH go build -o $OUTPUT_PATH
   if [ $? -ne 0 ]; then
     echo "Failed to build for $GOOS/$GOARCH!"
     exit 1
