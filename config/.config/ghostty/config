@@ -2,3 +2,4 @@ theme = nord
 macos-titlebar-style = tabs
 
 keybind = ctrl+cmd+m=toggle_split_zoom
+keybind = global:cmd+option+grave_accent=toggle_quick_terminal
