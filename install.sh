@@ -26,6 +26,7 @@ createBackups() {
     mv ~/.config ~/config.bak
   fi
 }
+
 confirm_message="This script will replace the folders ~/.config.bak and ~/.bash.bak. Are you sure you want to do this?"
 gum confirm "$confirm_message" && createBackups || echo "Not gonna do it"
 
@@ -51,3 +52,14 @@ stow . -d $SCRIPT_DIR/config -t ~/
 # Install global programmig languages witn mise.
 mise use --global node@lts
 mise use --global go@latest
+mise use --global rust@latest
+
+# If installing on a Linux system setup the shpool session persistence tool.
+if [[ "$OS" == "Linux" ]]; then
+  cargo install shpool
+  curl -fLo "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/shpool.service" --create-dirs https://raw.githubusercontent.com/shell-pool/shpool/master/systemd/shpool.service
+  sed -i "s|/usr|$HOME/.cargo|" "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/shpool.service"
+  curl -fLo "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/shpool.socket" --create-dirs https://raw.githubusercontent.com/shell-pool/shpool/master/systemd/shpool.socket
+  systemctl --user enable shpool
+  systemctl --user start shpoolloginctl shpool
+fi

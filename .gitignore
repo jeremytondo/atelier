@@ -5,6 +5,7 @@ config/.config/gh/hosts.yml
 config/.config/tmux/plugins
 config/.config/go
 config/.config/iterm2
+config/.config/systemd
 
 # System files
 .DS_Store
