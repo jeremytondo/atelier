@@ -7,6 +7,9 @@ config/.config/go
 config/.config/iterm2
 config/.config/systemd
 config/.config/coderv2
+config/.config/configstore
+config/.config/gcloud
+config/.config/firebase
 
 # System files
 .DS_Store
