@@ -19,6 +19,13 @@ else
   source <(fzf --zsh)
 fi
 
+
+# Update PATH for the Google Cloud SDK.
+if [ -f $HOME/.local/share/google-cloud-sdk/path.zsh.inc ]; then . $HOME/.local/share/google-cloud-sdk/path.zsh.inc; fi
+
+# Enables shell command completion for gcloud.
+if [ -f '$HOME/.local/share/google-cloud-sdk/completion.zsh.inc' ]; then . '$HOME/.local/share/google-cloud-sdk/completion.zsh.inc'; fi
+
 # Zoxide init must be at the end of this file. 
 if command -v zoxide &> /dev/null; then
   eval "$(zoxide init zsh)"
