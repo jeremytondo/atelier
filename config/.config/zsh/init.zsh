@@ -19,6 +19,8 @@ else
   source <(fzf --zsh)
 fi
 
+# Set default bat color theme
+export BAT_THEME="Nord"
 
 # Update PATH for the Google Cloud SDK.
 if [ -f $HOME/.local/share/google-cloud-sdk/path.zsh.inc ]; then . $HOME/.local/share/google-cloud-sdk/path.zsh.inc; fi
