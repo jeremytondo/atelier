@@ -12,7 +12,7 @@ if [[ "$OS" == "Linux" ]]; then
     libvips imagemagick libmagickwand-dev mupdf mupdf-tools gir1.2-gtop-2.0 gir1.2-clutter-1.0 \
     redis-tools sqlite3 libsqlite3-0 libmysqlclient-dev libpq-dev postgresql-client postgresql-client-common
 else
-  brew install fzf ripgrep bat eza zoxide btop tldr
+  brew install fzf ripgrep bat eza zoxide btop tldr fd
 
   brew install pkg-config autoconf bison libvips imagemagick mupdf sqlite3
 fi
