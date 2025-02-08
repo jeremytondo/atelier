@@ -10,6 +10,8 @@ config/.config/coderv2
 config/.config/configstore
 config/.config/gcloud
 config/.config/firebase
+config/.config/create-next-app-nodejs
+config/.config/nextjs-nodejs
 
 # System files
 .DS_Store
