@@ -1,5 +1,7 @@
 [tools]
+gcloud = "latest"
 go = "latest"
 node = "lts"
+python = "latest"
 ruby = "3"
 rust = "latest"
