@@ -11,6 +11,10 @@ vim.opt.colorcolumn = "80" -- Set the line length to 80 characters
 -- and I think things are working now. Leaving this all here for now though in
 -- case I need to go back to it.
 
+if vim.fn.empty(vim.env.SSH_TTY) == 1 then -- Running locally (no SSH_TTY)
+  vim.opt.clipboard = "unnamedplus"
+end
+
 -- vim.opt.clipboard = "unnamed"
 -- vim.opt.clipboard = ""
 
