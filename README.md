@@ -39,3 +39,7 @@ a couple different things based on the context.
 are currently open, or it won't do anything at all.
 * `atelier project [name]` including a project name will open that project if
 it exists, or offer to help create a new one.
+
+## To Do
+* Find a better way to split out the install of Mac apps vs Linux apps.
+* Include Aerospace window manager install for Mac
