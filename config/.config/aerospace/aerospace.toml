@@ -211,4 +211,13 @@ automatically-unhide-macos-hidden-apps = false
 if.app-id="com.mitchellh.ghostty"
 run= [
   "layout tiling",
+  "move-node-to-workspace T"
 ]
+
+[[on-window-detected]]
+if.app-id = "com.apple.reminders"
+run = "move-node-to-workspace R"
+
+[[on-window-detected]]
+if.app-id = "com.1password.1password"
+run = ["layout floating"]
