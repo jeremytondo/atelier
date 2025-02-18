@@ -5,3 +5,6 @@
 -- Keep the focus vertically centered while scrolling up and down.
 vim.keymap.set("n", "<C-d>", "<C-d>zz", { noremap = true })
 vim.keymap.set("n", "<C-u>", "<C-u>zz", { noremap = true })
+
+-- Paste witout clobbering what you copied
+vim.keymap.set("x", "<leader>p", [["_dP]])
