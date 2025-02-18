@@ -210,14 +210,18 @@ automatically-unhide-macos-hidden-apps = false
 [[on-window-detected]]
 if.app-id="com.mitchellh.ghostty"
 run= [
-  "layout tiling",
+  "layout h_accordion",
   "move-node-to-workspace T"
 ]
 
 [[on-window-detected]]
 if.app-id = "com.apple.reminders"
-run = "move-node-to-workspace R"
+run = ["move-node-to-workspace R" "layout h_accordion"]
 
 [[on-window-detected]]
 if.app-id = "com.1password.1password"
 run = ["layout floating"]
+
+[[on-window-detected]]
+if.app-id = "com.apple.MobileSMS"
+run = "move-node-to-workspace M"
