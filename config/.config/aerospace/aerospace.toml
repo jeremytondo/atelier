@@ -232,3 +232,8 @@ if.app-id = 'com.google.Chrome'
 if.window-title-regex-substring = 'about:blank'
 run = 'layout floating'
 check-further-callbacks = true
+
+[[on-window-detected]]
+if.app-id = 'com.google.Chrome'
+if.window-title-regex-substring = 'Jeremy (Blazerr)'
+run = "move-node-to-workspace 3"
