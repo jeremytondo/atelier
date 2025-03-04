@@ -6,7 +6,7 @@ alias lta='lt -a'
 alias ff="fzf --preview 'bat --style=numbers --color=always {}'"
 alias cd='z'
 
-if [[ "$OS" == "Linux" ]]; then
+if [[ $(uname -s) == "Linux" ]]; then
   alias fd='fdfind'
 fi
 
@@ -24,7 +24,7 @@ alias lzg='lazygit'
 alias lzd='lazydocker'
 alias at='atelier'
 
-if [[ "$OS" == "Linux" ]]; then
+if [[ "$(uname -s)" == "Linux" ]]; then
   alias bat='batcat'
 fi
 
