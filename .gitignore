@@ -16,3 +16,4 @@ config/.config/github-copilot
 
 # System files
 .DS_Store
+.env
