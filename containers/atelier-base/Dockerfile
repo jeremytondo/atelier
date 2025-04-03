@@ -143,26 +143,17 @@ RUN export FZF_DOC_DIR="/usr/share/doc/fzf/examples" && \
     # Ensure they are world-readable
     chmod 644 "${FZF_DOC_DIR}/completion.zsh" "${FZF_DOC_DIR}/key-bindings.zsh"
 
-# === Install NVM (Latest from Master), Node.js (Latest LTS), and set default ===
-RUN export NVM_DIR="/home/devuser/.nvm" && \
+# === Install NVM and Node.js via Script ===
+# Copy the script into the image
+COPY install-nvm-node.sh /usr/local/bin/install-nvm-node.sh
+# Make it executable and run it as devuser, then remove script
+RUN chmod +x /usr/local/bin/install-nvm-node.sh && \
+    # Ensure home dir is writeable by user before running script
     chown devuser:devuser /home/devuser && \
-    runuser -u devuser -- bash -c \
-       # Download and run the LATEST nvm install script from the master branch
-       curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash && \
-       # Source nvm script for this command sequence (important!)
-       . ${NVM_DIR}/nvm.sh && \
-       # Install the latest LTS Node.js version ('node' is alias for latest LTS)
-       echo 'Installing latest LTS Node.js...' && \
-       nvm install node && \
-       # Set this version as the default for new shells
-       nvm alias default node && \
-       # Clean up nvm cache
-       nvm cache clear && \
-       # Verify installation (optional)
-       echo 'Node version:' && \
-       node --version && \
-       echo 'npm version:' && \
-       npm --version"
+    # Run the script as devuser
+    runuser -u devuser /usr/local/bin/install-nvm-node.sh && \
+    # Clean up the script
+    rm /usr/local/bin/install-nvm-node.sh
 
 # --- Add the SSH Entrypoint script ---
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
