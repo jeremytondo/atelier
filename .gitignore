@@ -13,6 +13,7 @@ config/.config/firebase
 config/.config/create-next-app-nodejs
 config/.config/nextjs-nodejs
 config/.config/github-copilot
+config/.config/gopls
 
 # System files
 .DS_Store
