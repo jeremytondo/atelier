@@ -9,6 +9,9 @@ if vim.fn.empty(vim.env.SSH_TTY) == 1 then -- Running locally (no SSH_TTY)
   vim.opt.clipboard = "unnamedplus"
 end
 
+-- Always use the current working directory as the root.
+vim.g.root_spec = { "cwd" }
+
 -- The following is some attemts to get the clipboard working well via ssh
 -- and when an shpool session is running. Turns out most of this is not needed.
 -- Looks like this was an issue with the SSH_TTY environment variable getting
