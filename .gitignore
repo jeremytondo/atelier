@@ -17,3 +17,4 @@ config/.config/gopls
 
 # System files
 .DS_Store
+.env

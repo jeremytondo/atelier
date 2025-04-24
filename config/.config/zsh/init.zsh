@@ -28,6 +28,13 @@ if [ -f $HOME/.local/share/google-cloud-sdk/path.zsh.inc ]; then . $HOME/.local/
 # Enables shell command completion for gcloud.
 if [ -f '$HOME/.local/share/google-cloud-sdk/completion.zsh.inc' ]; then . '$HOME/.local/share/google-cloud-sdk/completion.zsh.inc'; fi
 
+# NVM (Node Version Manager)
+export NVM_DIR="$HOME/.nvm"
+# Load nvm script if it exists
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+# Load nvm bash_completion (optional but recommended)
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
 # Zoxide init must be at the end of this file. 
 if command -v zoxide &> /dev/null; then
   eval "$(zoxide init zsh)"
