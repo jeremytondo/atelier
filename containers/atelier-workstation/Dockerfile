@@ -1,5 +1,7 @@
 FROM atelier-base:latest
 
+ENV USERNAME=${USERNAME:-devuser}
+
 # --- SSH Setup ---    
 RUN update-ca-certificates --fresh \
     # Disable password authentication
@@ -11,19 +13,19 @@ RUN update-ca-certificates --fresh \
     # Create SSH host keys
     && ssh-keygen -A \
     # Remove the user's password (no password login)
-    && passwd -d $USER \
+    && passwd -d $USERNAME \
     # Create .ssh directory and set permissions (owner/perms set by entrypoint too, but good to create dir)
-    && mkdir -p /home/$USER/.ssh \
-    && chown $USER:$USER /home/$USER/.ssh \
-    && chmod 700 /home/$USER/.ssh
+    && mkdir -p /home/$USERNAME/.ssh \
+    && chown $USERNAME:$USERNAME /home/$USERNAME/.ssh \
+    && chmod 700 /home/$USERNAME/.ssh
 
 # --- Add the SSH Entrypoint script ---
-COPY /containers/atelier-base/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY /containers/atelier-workstation/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # --- Add Ghostty Terminfo Definition ---
 # Copy the source file generated locally into a temporary location
-COPY /containers/atelier-base/xterm-ghostty.terminfo.src /tmp/xterm-ghostty.terminfo.src
+COPY /containers/atelier-workstation/xterm-ghostty.terminfo.src /tmp/xterm-ghostty.terminfo.src
 # Compile and install the terminfo definition using tic
 # -x: Use extended capabilities (matches infocmp -x)
 # -o: Specify output directory (standard system location)
@@ -32,15 +34,16 @@ RUN tic -x -o /usr/share/terminfo /tmp/xterm-ghostty.terminfo.src \
     && rm /tmp/xterm-ghostty.terminfo.src
 
 # --- Install additional applications ---
-# RUN chmod +x /tmp/install/apps/*.sh && \
-#     for script in /tmp/install/apps/*.sh; do \
-#         # Skip trying to execute common.sh directly if it's just functions
-#         echo "--- Running script: $(basename "$script") ---"; \
-#         # Execute using bash, exit build if any script fails
-#         # The sourced common.sh will be available within this execution
-#         bash "$script" || exit 1; \
-#         echo "--- Finished script: $(basename "$script") ---"; \
-#     done
+COPY /install/ /tmp/install/
+RUN chmod +x /tmp/install/apps/*.sh && \
+    for script in /tmp/install/apps/*.sh; do \
+        # Skip trying to execute common.sh directly if it's just functions
+        echo "--- Running script: $(basename "$script") ---"; \
+        # Execute using bash, exit build if any script fails
+        # The sourced common.sh will be available within this execution
+        gosu $USERNAME bash "$script" || exit 1; \
+        echo "--- Finished script: $(basename "$script") ---"; \
+    done
 
 # Set the entrypoint script to run
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
