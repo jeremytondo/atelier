@@ -1,65 +1,71 @@
 #!/bin/bash
 
-# Exit immediately if a command exits with a non-zero status
-set -e
+# Mac Terminal Setup Script
+# Prerequisites: Xcode Developer Tools and Homebrew must be installed
 
-# Directory the install.sh file is in at the time it is run.
-# SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
-SCRIPT_DIR=$HOME/.local/share/atelier
+set -e # Exit on error
 
-# OS type: Linux or Darwin (MacOS)
-OS="$(uname -s)"
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PACKAGES_DIR="$SCRIPT_DIR/packages"
 
-# Installs required apps needed for the rest of the install process.
-for app in $SCRIPT_DIR/install/required/*.sh; do source $app; done
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
 
-# Backup existing configs.
-createBackups() {
-  rm -rf "$HOME/.config.bak"
-  rm -rf "$HOME/.bash.bak"
-
-  # If there is an existng zsh config, back it up.
-  [ -f "$HOME/.zshrc" ] && mv ~/.zshrc ~/config.bak
-
-  # If there is an existing .config directlry, back it up.
-  if [[ -d "$HOME/.config" ]]; then
-    mv ~/.config ~/config.bak
-  fi
+# Helper functions
+print_step() {
+  echo -e "${GREEN}==>${NC} $1"
 }
 
-confirm_message="This script will replace the folders ~/.config.bak and ~/.bash.bak. Are you sure you want to do this?"
-gum confirm "$confirm_message" && createBackups || echo "Not gonna do it"
+print_error() {
+  echo -e "${RED}Error:${NC} $1"
+}
 
-if [[ "$OS" == "Linux" ]]; then
-  # Ensure everything is update before beginning installation.
-  sudo apt update -y
-  sudo apt upgrade -y
-fi
+print_warning() {
+  echo -e "${YELLOW}Warning:${NC} $1"
+}
 
-# If zsh is not installed, install it.
-if ! command -v zsh &>/dev/null; then
-  source $SCRIPT_DIR/install/zsh/zsh.sh
-fi
+# Read packages from file and return as space-separated list
+read_packages() {
+  local file="$1"
+  if [ ! -f "$file" ]; then
+    print_error "Package file not found: $file"
+    return 1
+  fi
+  # Read file, remove comments and empty lines, join with spaces
+  grep -v '^#' "$file" | grep -v '^$' | tr '\n' ' '
+}
 
-# Install apps.
-for app in $SCRIPT_DIR/install/apps/*.sh; do source $app; done
+# Update Homebrew
+update_homebrew() {
+  print_step "Updating Homebrew package lists..."
+  brew update
+}
 
-# INSTALL CONFIGS
+# Install packages from a given file
+install_packages() {
+  local category="$1"
+  local file="$2"
+  print_step "Installing $category..."
 
-# Use GNU Stow to to link configs to home directory.
-stow . -d $SCRIPT_DIR/config -t ~/
+  local packages=$(read_packages "$file")
+  [ -n "$packages" ] && brew install $packages
+}
 
-# Install global programmig languages witn mise.
-mise use --global node@lts
-mise use --global go@latest
-mise use --global rust@latest
+# Main installation flow
+main() {
+  echo "=== Mac Terminal Setup ==="
 
-# If installing on a Linux system setup the shpool session persistence tool.
-if [[ "$OS" == "Linux" ]]; then
-  cargo install shpool
-  curl -fLo "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/shpool.service" --create-dirs https://raw.githubusercontent.com/shell-pool/shpool/master/systemd/shpool.service
-  sed -i "s|/usr|$HOME/.cargo|" "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/shpool.service"
-  curl -fLo "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/shpool.socket" --create-dirs https://raw.githubusercontent.com/shell-pool/shpool/master/systemd/shpool.socket
-  systemctl --user enable shpool
-  systemctl --user start shpoolloginctl shpool
-fi
+  check_prerequisites
+  update_homebrew
+  install_packages "base packages" "$PACKAGES_DIR/base.packages"
+  install_packages "development packages" "$PACKAGES_DIR/dev.packages"
+
+  echo "✅ Setup complete! Package lists: $PACKAGES_DIR"
+}
+
+# Run main function
+main
