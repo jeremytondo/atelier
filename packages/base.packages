@@ -6,6 +6,5 @@ zoxide
 fd
 wget
 zsh-completions
-zsh-autosuggestions
 stow
 zoxide
