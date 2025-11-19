@@ -59,7 +59,6 @@ install_packages() {
 main() {
   echo "=== Mac Terminal Setup ==="
 
-  check_prerequisites
   update_homebrew
   install_packages "base packages" "$PACKAGES_DIR/base.packages"
   install_packages "development packages" "$PACKAGES_DIR/dev.packages"
