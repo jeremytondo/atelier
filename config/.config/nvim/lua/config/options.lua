@@ -9,5 +9,22 @@ if vim.fn.empty(vim.env.SSH_TTY) == 1 then -- Running locally (no SSH_TTY)
   vim.opt.clipboard = "unnamedplus"
 end
 
+-- Get the value of the DEVCONTAINER environment variable
+local is_devcontainer = os.getenv("DEVCONTAINER")
+
+if is_devcontainer == "true" then
+  vim.g.clipboard = {
+    name = "OSC 52",
+    copy = {
+      ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
+      ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
+    },
+    paste = {
+      ["+"] = require("vim.ui.clipboard.osc52").paste("+"),
+      ["*"] = require("vim.ui.clipboard.osc52").paste("*"),
+    },
+  }
+end
+
 -- Always use the current working directory as the root.
 vim.g.root_spec = { "cwd" }

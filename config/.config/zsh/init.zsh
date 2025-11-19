@@ -4,7 +4,8 @@ if command -v mise &> /dev/null; then
 fi
 
 # ZSH auto suggestions.
-source ~/.local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+# source ~/.local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 # Initialize Homebrew on MacOS
 if [[ "$(uname -s)" == "Darwin" ]]; then
