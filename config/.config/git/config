@@ -1,0 +1,5 @@
+[user]
+    name = Jeremy Margaritondo
+    email = jmargari@gmail.com 
+[pull]
+    rebase = true
