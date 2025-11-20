@@ -20,6 +20,10 @@ else
   source <(fzf --zsh)
 fi
 
+# Temporarily set as this will work in all cases I think once I standardize
+# the install methods across platforms.
+source <(fzf --zsh)
+
 # Set default bat color theme
 export BAT_THEME="Nord"
 
