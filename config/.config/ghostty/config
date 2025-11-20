@@ -1,4 +1,4 @@
-theme = nord
+theme = Catppuccin Mocha 
 macos-titlebar-style = tabs
 
 keybind = ctrl+cmd+m=toggle_split_zoom
