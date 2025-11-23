@@ -1,5 +1,7 @@
-gh
+gh arch:github-cli
 neovim
 lazygit
 lazydocker
 tldr
+arch:base-devel
+bat ubuntu:batcat

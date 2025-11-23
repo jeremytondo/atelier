@@ -55,3 +55,77 @@ check_command() {
 get_script_dir() {
   echo "$(cd "$(dirname "${BASH_SOURCE[1]}")" && pwd)"
 }
+
+# Parse a package line and return package name for specific platform
+# Returns empty string if package should not be installed on this platform
+parse_package_for_platform() {
+  local line="$1"
+  local target_platform="$2"
+  
+  # Split line into tokens
+  local tokens=($line)
+  local base_package=""
+  local found_target_override=""
+  local found_any_platform=false
+  
+  # Process each token
+  for token in "${tokens[@]}"; do
+    if [[ "$token" == *":"* ]]; then
+      # This is a platform:package pair
+      local platform=$(echo "$token" | cut -d: -f1)
+      local package=$(echo "$token" | cut -d: -f2)
+      found_any_platform=true
+      
+      if [ "$platform" == "$target_platform" ]; then
+        found_target_override="$package"
+      fi
+    else
+      # This is a base package name
+      base_package="$token"
+    fi
+  done
+  
+  # Apply the logic rules
+  if [ -n "$found_target_override" ]; then
+    # Rule 2 & 3: Platform override found
+    echo "$found_target_override"
+  elif [ -n "$base_package" ]; then
+    # Rule 1 & 3: Base package exists, install if no platform restrictions
+    echo "$base_package"
+  elif [ "$found_any_platform" = true ]; then
+    # Rule 4: Only platform-specific, target not found
+    echo ""
+  else
+    # Empty line or invalid
+    echo ""
+  fi
+}
+
+# Enhanced read_packages function for platform-specific parsing
+read_packages_for_platform() {
+  local file="$1"
+  local platform="$2"
+  local packages=""
+  
+  if [ ! -f "$file" ]; then
+    print_error "Package file not found: $file"
+    return 1
+  fi
+  
+  # Process each non-comment, non-empty line
+  while IFS= read -r line; do
+    # Skip comments and empty lines
+    [[ "$line" =~ ^#.*$ ]] && continue
+    [[ -z "$line" ]] && continue
+    
+    # Parse package for this platform
+    local pkg=$(parse_package_for_platform "$line" "$platform")
+    
+    # Add to package list if not empty
+    if [ -n "$pkg" ]; then
+      packages="$packages $pkg"
+    fi
+  done < "$file"
+  
+  echo "$packages"
+}

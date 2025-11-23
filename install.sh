@@ -17,13 +17,30 @@ update_homebrew() {
   brew update
 }
 
+# Install packages from a given file using brew for Mac
+install_packages_mac() {
+  local category="$1"
+  local file="$2"
+  local platform="mac"
+  
+  print_step "Installing $category..."
+
+  local packages=$(read_packages_for_platform "$file" "$platform")
+  if [ -z "$packages" ]; then
+    print_warning "No packages found for $platform in $file"
+    return
+  fi
+  
+  brew install $packages
+}
+
 # Main installation flow
 main() {
   echo "=== Mac Terminal Setup ==="
 
   update_homebrew
-  install_packages "base packages" "$PACKAGES_DIR/base.packages"
-  install_packages "development packages" "$PACKAGES_DIR/dev.packages"
+  install_packages_mac "base packages" "$PACKAGES_DIR/base.packages"
+  install_packages_mac "development packages" "$PACKAGES_DIR/dev.packages"
 
   echo "✅ Setup complete! Package lists: $PACKAGES_DIR"
 }
