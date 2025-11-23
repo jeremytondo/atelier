@@ -13,12 +13,12 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
 fi
 
 # Set up fzf key bindings and fuzzy completion
-if command -v fzf &> /dev/null && [[ "$(uname -s)" == "Linux" ]]; then
-  source /usr/share/doc/fzf/examples/completion.zsh
-  source /usr/share/doc/fzf/examples/key-bindings.zsh
-else
-  source <(fzf --zsh)
-fi
+# if command -v fzf &> /dev/null && [[ "$(uname -s)" == "Linux" ]]; then
+#   source /usr/share/doc/fzf/examples/completion.zsh
+#   source /usr/share/doc/fzf/examples/key-bindings.zsh
+# else
+#   source <(fzf --zsh)
+# fi
 
 # Temporarily set as this will work in all cases I think once I standardize
 # the install methods across platforms.
