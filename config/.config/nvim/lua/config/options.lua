@@ -4,26 +4,30 @@
 
 vim.opt.colorcolumn = "80" -- Set the line length to 80 characters
 
--- If running locally and not in an ssh session, use the unnamedplus clipboard.
-if vim.fn.empty(vim.env.SSH_TTY) == 1 then -- Running locally (no SSH_TTY)
-  vim.opt.clipboard = "unnamedplus"
-end
+-- Setup clipboard based on environment
+
+-- Define OSC 52 clipboard configuration
+local osc52_clipboard = {
+  name = "OSC 52",
+  copy = {
+    ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
+    ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
+  },
+  paste = {
+    ["+"] = require("vim.ui.clipboard.osc52").paste("+"),
+    ["*"] = require("vim.ui.clipboard.osc52").paste("*"),
+  },
+}
 
 -- Get the value of the DEVCONTAINER environment variable
 local is_devcontainer = os.getenv("DEVCONTAINER")
 
-if is_devcontainer == "true" then
-  vim.g.clipboard = {
-    name = "OSC 52",
-    copy = {
-      ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
-      ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
-    },
-    paste = {
-      ["+"] = require("vim.ui.clipboard.osc52").paste("+"),
-      ["*"] = require("vim.ui.clipboard.osc52").paste("*"),
-    },
-  }
+if vim.fn.empty(vim.env.SSH_TTY) == 1 and is_devcontainer ~= "true" then
+  -- Running locally (no SSH_TTY and not in devcontainer)
+  vim.opt.clipboard = "unnamedplus"
+else
+  -- Either in SSH session or in devcontainer - use OSC 52
+  vim.g.clipboard = osc52_clipboard
 end
 
 -- Always use the current working directory as the root.
