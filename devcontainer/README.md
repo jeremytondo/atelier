@@ -4,28 +4,37 @@ A minimal devcontainer configuration that includes standard CLI tools and dotfil
 
 ## Features
 
-- Based on the latest Ubuntu LTS release
-- Includes essential development tools (fzf, zoxide, ripgrep, bat, eza, etc.)
+- Based on Ubuntu 22.04 LTS
+- Includes essential development tools (fzf, zoxide, ripgrep, bat, etc.)
 - Automatically sets up dotfiles from the Atelier repository
 - Uses zsh as the default shell
-- Clean, minimal configuration
+- Clean, maintainable configuration with external setup script
+
+## How It Works
+
+This devcontainer setup uses a two-file approach:
+
+1. **devcontainer.json**: Configuration file for the devcontainer
+2. **setup.sh**: External script that handles all post-creation tasks
+
+This approach makes the configuration cleaner and more maintainable by separating the configuration from the setup logic.
 
 ## Usage
 
-1. Copy the `devcontainer.json` file to your project's `.devcontainer` directory:
+1. Copy both files to your project's `.devcontainer` directory:
 
 ```bash
 mkdir -p /path/to/your/project/.devcontainer
-cp devcontainer.json /path/to/your/project/.devcontainer/
+cp -r ~/.local/share/atelier/devcontainer/.devcontainer/* /path/to/your/project/.devcontainer/
 ```
 
-2. Open your project in a devcontainer-compatible editor (VS Code with Remote Containers extension, GitHub Codespaces, etc.)
+2. Open your project with a devcontainer-compatible tool or use the devcontainer CLI:
 
-3. The devcontainer will automatically:
-   - Install required packages
-   - Set up zsh as the default shell
-   - Clone your Atelier repository
-   - Configure your dotfiles using stow
+```bash
+cd /path/to/your/project
+devcontainer up --workspace-folder .
+devcontainer exec --workspace-folder . zsh
+```
 
 ## Customizing for Different Projects
 
@@ -42,7 +51,7 @@ You can easily extend this configuration for different project types by adding f
         "username": "devuser"
     },
     "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
-        "packages": "stow,fzf,zoxide,ripgrep,bat,eza,fd-find,wget,neovim,tldr,gh"
+        "packages": "stow,fzf,zoxide,ripgrep,bat,fd-find,wget,neovim,tldr,gh"
     },
     "ghcr.io/devcontainers/features/node:1": {
         "version": "lts"
@@ -61,7 +70,7 @@ You can easily extend this configuration for different project types by adding f
         "username": "devuser"
     },
     "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
-        "packages": "stow,fzf,zoxide,ripgrep,bat,eza,fd-find,wget,neovim,tldr,gh"
+        "packages": "stow,fzf,zoxide,ripgrep,bat,fd-find,wget,neovim,tldr,gh"
     },
     "ghcr.io/devcontainers/features/python:1": {
         "version": "3.10"
