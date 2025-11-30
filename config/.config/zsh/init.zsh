@@ -1,8 +1,3 @@
-# Init Mise environemnt manager.
-if command -v mise &> /dev/null; then
-  eval "$(mise activate zsh)"
-fi
-
 # ZSH auto suggestions.
 # source ~/.local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
