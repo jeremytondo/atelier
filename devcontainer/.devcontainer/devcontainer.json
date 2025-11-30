@@ -1,0 +1,34 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu22.04",
+  "name": "Atelier Base",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": false,
+      "username": "devuser"
+    },
+    "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
+      "packages": "stow,fzf,zoxide,ripgrep,bat,fd-find,wget,neovim,tldr,gh"
+    }
+  },
+  "postCreateCommand": "bash -c \"\
+        # 1. Clean up default configs to prevent Stow conflicts \
+        rm -rf $HOME/.zshrc $HOME/.bashrc $HOME/.profile $HOME/.oh-my-zsh && \
+        \
+        # 2. Install zsh-autosuggestions to /usr/local/share (requires sudo) \
+        sudo git clone https://github.com/zsh-users/zsh-autosuggestions /usr/local/share/zsh-autosuggestions && \
+        \
+        # 3. Prepare local share directory \
+        mkdir -p $HOME/.local/share && \
+        \
+        # 4. Clone your dotfiles repo \
+        git clone https://github.com/jeremytondo/atelier.git $HOME/.local/share/atelier && \
+        \
+        # 5. Stow the dotfiles \
+        cd $HOME/.local/share/atelier && \
+        cd config && stow . -t $HOME \
+    \"",
+  "remoteUser": "devuser",
+  "shutdownAction": "stopContainer"
+}
