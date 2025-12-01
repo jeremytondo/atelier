@@ -7,6 +7,9 @@
   "containerEnv": {
     "LANG": "en_US.UTF-8"
   },
+  "features": {
+    "ghcr.io/duduribeiro/devcontainer-features/neovim:1": {}
+  },
   "postCreateCommand": "./.devcontainer/setup.sh",
   "remoteUser": "devuser"
 }
