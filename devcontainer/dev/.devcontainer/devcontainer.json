@@ -1,0 +1,12 @@
+{
+  "name": "Atelier Dev",
+  "image": "atelier-base:latest",
+  "remoteEnv": {
+    "BRANCH": "dev"
+  },
+  "containerEnv": {
+    "LANG": "en_US.UTF-8"
+  },
+  "postCreateCommand": "./.devcontainer/setup.sh",
+  "remoteUser": "devuser"
+}
