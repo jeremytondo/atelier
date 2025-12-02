@@ -1,7 +1,6 @@
 ARG VARIANT="noble"
 FROM buildpack-deps:${VARIANT}-curl
 
-ARG VARIANT
 RUN if [ "$VARIANT" = "noble" ] || [ "$VARIANT" = "questing" ]; then \
         if id "ubuntu" &>/dev/null; then \
             echo "Deleting user 'ubuntu'  for $VARIANT" && userdel -f -r ubuntu || echo "Failed to delete ubuntu user for $VARIANT"; \  
