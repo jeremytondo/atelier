@@ -9,3 +9,5 @@ shell-integration-features = sudo
 clipboard-read = allow
 clipboard-write = allow
 clipboard-paste-protection = false
+
+macos-option-as-alt = true
