@@ -5,8 +5,8 @@ ACTION=$2
 
 # --- 1. Map Project Names to Directories ---
 case $PROJECT in
-"notes") TARGET_DIR="~/projects/notes/" ;;
-"atelier") TARGET_DIR="~/.local/share/atelier/" ;;
+"notes") TARGET_DIR="$HOME/projects/notes/" ;;
+"atelier") TARGET_DIR="$HOME/.local/share/atelier/" ;;
 *)
   echo "Error: Unknown project '$PROJECT'"
   exit 1
