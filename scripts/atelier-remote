@@ -36,6 +36,12 @@ esac
 # --- 3. Construct Session Name ---
 # Format: blog.edit, api.shell, etc.
 SESSION_NAME="${PROJECT}.${ACTION}"
+WINDOW_TITLE="${PROJECT} — ${ACTION}"
+
+# --- 4. Set Window Title ---
+# We print the escape sequence to stdout.
+# SSH sends this back to Ghostty, which updates the window title immediately.
+printf "\033]2;%s\007" "$WINDOW_TITLE"
 
 # --- 4. Launch Shpool ---
 # We use 'exec' to replace this script process with Shpool,
