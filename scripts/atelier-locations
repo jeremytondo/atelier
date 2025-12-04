@@ -6,7 +6,8 @@ if [ "$MODE" == "all" ]; then
   # DEEP SCAN:
   # -maxdepth 3 allows for ~/dev/org/repo
   # We exclude hidden folders (path '*/.*') to keep it clean
-  find ~/ -maxdepth 3 -mindepth 1 -type d 2>/dev/null
+  find ~/ -maxdepth 3 -type d 2>/dev/null
+  echo "~/" # Explicitly add the home directory
 else
   # FAST SCAN (Default):
   # Only return what Zoxide knows
