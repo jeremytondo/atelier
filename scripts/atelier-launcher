@@ -48,7 +48,7 @@ SELECTED=$(echo -e "$INPUT_LIST" | fzf \
   --with-nth=1 \
   --prompt="Remote ➜ " \
   --header="Ctrl+A: Toggle All | Select Project" \
-  --bind "ctrl-a:execute(atelier-launcher --all)+abort"
+  --bind "ctrl-a:execute(atelier-launcher --all)+abort")
 
 if [ -z "$SELECTED" ]; then
   exit 0
