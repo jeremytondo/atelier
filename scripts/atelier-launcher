@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# Default mode is empty (Fast/Zoxide)
+LOCATIONS_MODE=""
+
+# Check for flag
+if [ "$1" == "-all" ]; then
+  LOCATIONS_MODE="all"
+  PROMPT_TEXT="Locations (All) ➜ "
+else
+  PROMPT_TEXT="Locations (Recents) ➜ "
+fi
+
 # --- Config ---
 HOST="workstation"
 LOCATIONS_SCRIPT="~/.local/bin/atelier-locations"
@@ -7,7 +18,7 @@ ACTIONS=("edit" "shell" "opencode")
 
 # 1. Fetch the list live from the server
 # ssh -q (quiet) prevents banner text from breaking the list
-RAW_PATHS=$(ssh -q -t $HOST "$LOCATIONS_SCRIPT" | sort -u)
+RAW_PATHS=$(ssh -q -t $HOST "$LOCATIONS_SCRIPT $LOCATIONS_MODE" | sort -u)
 
 if [ -z "$RAW_PATHS" ]; then
   echo "No locations found"
@@ -36,7 +47,8 @@ SELECTED=$(echo -e "$INPUT_LIST" | fzf \
   --delimiter="\t" \
   --with-nth=1 \
   --prompt="Remote ➜ " \
-  --header="Select Project")
+  --header="Ctrl+A: Toggle All | Select Project" \
+  --bind "ctrl-a:execute(atelier-launcher --all)+abort"
 
 if [ -z "$SELECTED" ]; then
   exit 0

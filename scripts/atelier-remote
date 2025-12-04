@@ -1,7 +1,7 @@
 #!/bin/bash
 
-LOCATION=$1
-ACTION=$2
+LOCATION=$(echo "$1" | tr -d '\r')
+ACTION=$(echo "$2" | tr -d '\r')
 
 # Validation: Check if directory actually exists
 if [ ! -d "$LOCATION" ]; then
