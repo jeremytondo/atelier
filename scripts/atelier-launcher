@@ -51,4 +51,4 @@ ACTION=$(echo "$SELECTED" | cut -f3)
 # We use the existing 'rem' logic here directly to avoid an extra script call,
 # or you can call your existing 'rem' script if you updated it to handle paths.
 # ssh -t "$HOST" "$REMOTE_MANAGER \"$TARGET_PATH\" \"$CHOSEN_ACTION\""
-atelier "$PROJECT" "$ACTION"
+atelier "$LOCATION" "$ACTION"
