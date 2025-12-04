@@ -5,7 +5,7 @@
 
 # --- Configuration ---
 HOST="workstation" # Set your SSH host alias here
-REMOTE_SCRIPT="~/.local/bin/atelier-remote"
+REMOTE_SCRIPT="atelier-remote"
 # ---------------------
 
 PROJECT=$1

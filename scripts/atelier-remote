@@ -1,0 +1,46 @@
+#!/bin/bash
+
+PROJECT=$1
+ACTION=$2
+
+# --- 1. Map Project Names to Directories ---
+case $PROJECT in
+"notes") TARGET_DIR="~/projects/notes/" ;;
+"atelier") TARGET_DIR="~/.local/share/atelier/" ;;
+*)
+  echo "Error: Unknown project '$PROJECT'"
+  exit 1
+  ;;
+esac
+
+# --- 2. Map Actions to Commands ---
+case $ACTION in
+"edit")
+  # Launch Neovim
+  CMD="nvim ."
+  ;;
+"opencode")
+  # Launch OpenCode (assuming 'opencode' is in path)
+  CMD="opencode ."
+  ;;
+"shell")
+  # Launch your preferred shell
+  CMD="$SHELL"
+  ;;
+*)
+  echo "Error: Unknown action '$ACTION'"
+  exit 1
+  ;;
+esac
+
+# --- 3. Construct Session Name ---
+# Format: blog.edit, api.shell, etc.
+SESSION_NAME="${PROJECT}.${ACTION}"
+
+# --- 4. Launch Shpool ---
+# We use 'exec' to replace this script process with Shpool,
+# ensuring the signal handling works correctly.
+exec shpool attach \
+  --dir "$TARGET_DIR" \
+  --cmd "$CMD" \
+  "$SESSION_NAME"
