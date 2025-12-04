@@ -1,12 +1,7 @@
 #!/bin/bash
 
-# Usage: rem <project> <action>
-# Example: rem blog edit
-
-# --- Configuration ---
 HOST="workstation" # Set your SSH host alias here
 REMOTE_MANAGER="~/.local/bin/atelier-remote"
-# ---------------------
 
 LOCATION=$1
 ACTION=$2
