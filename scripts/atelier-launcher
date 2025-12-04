@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Path to your static project list
+PROJECT_LIST="$HOME/remote-projects.txt"
+
+# Define available actions
+ACTIONS=("edit" "shell" "opencode")
+
+# 1. Generate the list of combinations
+# We read the project file, and for every project, we append every action.
+# Output format: "project action" (e.g., "blog edit")
+COMBINATIONS=$(while read -r project; do
+  for action in "${ACTIONS[@]}"; do
+    echo "$project $action"
+  done
+done <"$PROJECT_LIST")
+
+# 2. Pipe into FZF
+# --height: takes up 40% of the pane (looks like a popup)
+# --reverse: prompt at top
+# --header: simple instruction
+SELECTED=$(echo "$COMBINATIONS" | fzf \
+  --height=40% \
+  --layout=reverse \
+  --border \
+  --prompt="Remote ➜ " \
+  --header="Select Project & Action")
+
+# 3. Exit if cancelled
+if [ -z "$SELECTED" ]; then
+  exit 0
+fi
+
+# 4. Parse the result
+# We split the string "blog edit" back into two variables
+read -r PROJECT ACTION <<<"$SELECTED"
+
+# 5. Execute your existing 'rem' script
+# This assumes 'rem' is in your path.
+atelier "$PROJECT" "$ACTION"
