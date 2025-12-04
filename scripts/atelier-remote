@@ -35,7 +35,7 @@ esac
 
 # --- 3. Construct Session Name ---
 # Format: blog.edit, api.shell, etc.
-SESSION_NAME="${PROJECT}.${ACTION}"
+SESSION_NAME="${PROJECT}:${ACTION}"
 WINDOW_TITLE="${PROJECT} — ${ACTION}"
 
 # --- 4. Set Window Title ---
