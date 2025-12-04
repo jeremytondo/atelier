@@ -25,7 +25,7 @@ case $ACTION in
   ;;
 "shell")
   # Launch your preferred shell
-  CMD="$SHELL"
+  CMD="exec zsh"
   ;;
 *)
   echo "Error: Unknown action '$ACTION'"
