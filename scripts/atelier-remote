@@ -1,52 +1,33 @@
 #!/bin/bash
 
-PROJECT=$1
+LOCATION=$1
 ACTION=$2
 
-# --- 1. Map Project Names to Directories ---
-case $PROJECT in
-"notes") TARGET_DIR="$HOME/projects/notes/" ;;
-"atelier") TARGET_DIR="$HOME/.local/share/atelier/" ;;
-*)
-  echo "Error: Unknown project '$PROJECT'"
+# Validation: Check if directory actually exists
+if [ ! -d "$LOCATION" ]; then
+  echo "Error: Directory '$LOCATION' does not exist."
   exit 1
-  ;;
-esac
+fi
 
-# --- 2. Map Actions to Commands ---
+# Construct session and window Names
+SESSION_NAME="${LOCATION}:${ACTION}"
+WINDOW_TITLE="${LOCATION} — ${ACTION}"
+
+# Map Actions to Commands
 case $ACTION in
-"edit")
-  # Launch Neovim
-  CMD="nvim ."
-  ;;
-"opencode")
-  # Launch OpenCode (assuming 'opencode' is in path)
-  CMD="opencode ."
-  ;;
-"shell")
-  # Launch your preferred shell
-  CMD="$SHELL -l"
-  ;;
-*)
-  echo "Error: Unknown action '$ACTION'"
-  exit 1
-  ;;
+"edit") CMD="nvim ." ;;
+"opencode") CMD="opencode" ;;
+"shell") CMD="$SHELL -l" ;;
+*) CMD="$SHELL" ;;
 esac
 
-# --- 3. Construct Session Name ---
-# Format: blog.edit, api.shell, etc.
-SESSION_NAME="${PROJECT}:${ACTION}"
-WINDOW_TITLE="${PROJECT} — ${ACTION}"
-
-# --- 4. Set Window Title ---
+# Set window title
 # We print the escape sequence to stdout.
-# SSH sends this back to Ghostty, which updates the window title immediately.
+# SSH sends this back to the terminal, which updates the window title.
 printf "\033]2;%s\007" "$WINDOW_TITLE"
 
-# --- 4. Launch Shpool ---
-# We use 'exec' to replace this script process with Shpool,
-# ensuring the signal handling works correctly.
+# Launch Shpool
 exec shpool attach \
-  --dir "$TARGET_DIR" \
+  --dir "$LOCATION" \
   --cmd "$CMD" \
   "$SESSION_NAME"
