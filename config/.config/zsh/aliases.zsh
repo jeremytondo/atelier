@@ -24,6 +24,7 @@ alias lzg='lazygit'
 alias lzd='lazydocker'
 alias at='atelier'
 alias dc='devcontainer'
+alias ag='atelier-client'
 
 if [[ "$(uname -s)" == "Linux" ]]; then
   alias bat='batcat'

@@ -1,0 +1,33 @@
+#!/bin/bash
+
+LOCATION=$(echo "$1" | tr -d '\r')
+ACTION=$(echo "$2" | tr -d '\r')
+
+# Validation: Check if directory actually exists
+if [ ! -d "$LOCATION" ]; then
+  echo "Error: Directory '$LOCATION' does not exist."
+  exit 1
+fi
+
+# Construct session and window Names
+SESSION_NAME="${LOCATION}:${ACTION}"
+WINDOW_TITLE="${LOCATION} — ${ACTION}"
+
+# Map Actions to Commands
+case $ACTION in
+"edit") CMD="nvim ." ;;
+"opencode") CMD="opencode" ;;
+"shell") CMD="$SHELL -l" ;;
+*) CMD="$SHELL" ;;
+esac
+
+# Set window title
+# We print the escape sequence to stdout.
+# SSH sends this back to the terminal, which updates the window title.
+printf "\033]2;%s\007" "$WINDOW_TITLE"
+
+# Launch Shpool
+exec shpool attach \
+  --dir "$LOCATION" \
+  --cmd "$CMD" \
+  "$SESSION_NAME"

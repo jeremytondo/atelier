@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# Default mode is empty (Fast/Zoxide)
+LOCATIONS_MODE=""
+
+# Check for flag
+if [ "$1" == "-all" ]; then
+  LOCATIONS_MODE="all"
+  PROMPT_TEXT="Locations (All) ➜ "
+else
+  PROMPT_TEXT="Locations (Recents) ➜ "
+fi
+
+# --- Config ---
+HOST="workstation"
+LOCATIONS_SCRIPT="~/.local/bin/atelier-locations"
+ACTIONS=("edit" "shell" "opencode")
+
+# 1. Fetch the list live from the server
+# ssh -q (quiet) prevents banner text from breaking the list
+RAW_PATHS=$(ssh -q -t $HOST "$LOCATIONS_SCRIPT $LOCATIONS_MODE" | sort -u)
+
+if [ -z "$RAW_PATHS" ]; then
+  echo "No locations found"
+  exit 1
+fi
+
+# 2. Build the combinations for FZF
+# Format: "ProjectName (Action) [TAB] FullPath"
+# We use a tab delimiter so FZF can hide the ugly full path but keep it for logic
+INPUT_LIST=""
+while read -r path; do
+  name=$(basename "$path")
+  for action in "${ACTIONS[@]}"; do
+    INPUT_LIST+="$name ($action)\t$path\t$action"$'\n'
+  done
+done <<<"$RAW_PATHS"
+
+# 3. FZF Selection
+# --delimiter="\t": Tell FZF tabs separate columns
+# --with-nth=1: Only show the first column (Name + Action)
+# --bind: allow ctrl-r to refresh the list (optional advanced feature)
+SELECTED=$(echo -e "$INPUT_LIST" | fzf \
+  --height=40% \
+  --layout=reverse \
+  --border \
+  --delimiter="\t" \
+  --with-nth=1 \
+  --prompt="$PROMPT_TEXT" \
+  --header="Select Location")
+
+if [ -z "$SELECTED" ]; then
+  exit 0
+fi
+
+# 4. Extract Data
+# We grab the 2nd and 3rd columns (Path and Action)
+LOCATION=$(echo "$SELECTED" | cut -f2)
+ACTION=$(echo "$SELECTED" | cut -f3)
+
+# 5. Launch
+# We use the existing 'rem' logic here directly to avoid an extra script call,
+# or you can call your existing 'rem' script if you updated it to handle paths.
+# ssh -t "$HOST" "$REMOTE_MANAGER \"$TARGET_PATH\" \"$CHOSEN_ACTION\""
+atelier "$LOCATION" "$ACTION"

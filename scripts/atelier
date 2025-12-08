@@ -1,0 +1,17 @@
+#!/bin/bash
+
+HOST="workstation" # Set your SSH host alias here
+REMOTE_MANAGER="~/.local/bin/atelier-remote"
+
+LOCATION=$1
+ACTION=$2
+
+if [ -z "$LOCATION" ] || [ -z "$ACTION" ]; then
+  echo "Usage: atelier <location> <action>"
+  echo "Actions: edit, shell, opencode"
+  exit 1
+fi
+
+# We use -t to force TTY allocation, which is required for
+# interactive tools like Shpool/Neovim.
+ssh -t "$HOST" "$REMOTE_MANAGER $LOCATION $ACTION"
