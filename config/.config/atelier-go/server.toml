@@ -2,8 +2,4 @@ port = "9002"
 
 [[actions]]
 name = "nvim"
-command = "nvim ."
-
-[[actions]]
-name = "opencode"
-command = "opencode"
+command = "nvim"

@@ -1,0 +1,11 @@
+name = "Devcontainers Test"
+location = "~/.local/share/atelier/devcontainers/dev/"
+
+[[actions]]
+name = "devcontainer shell"
+command = "PATH=/home/jeremytondo/.nvm/versions/node/v25.2.1/bin:$PATH devcontainer exec --workspace-folder . zsh"
+
+[[actions]]
+name = "devcontainer nvim"
+command = "PATH=/home/jeremytondo/.nvm/versions/node/v25.2.1/bin:$PATH devcontainer exec --workspace-folder . nvim"
+
