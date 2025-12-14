@@ -85,12 +85,13 @@ main() {
   update_system
   install_yay
   setup_shell
+
+  # Install packages
   install_packages_from_file "$PACKAGES_DIR/base.packages"
-
-  # Link dotfiles
-  bash "$SCRIPT_DIR/dotfiles.sh"
-
   install_packages_from_file "$PACKAGES_DIR/dev.packages"
+
+  # Install additional tools
+  bash "$SCRIPT_DIR/additional-tools/all.sh"
 
   echo "✅ Setup complete! Package lists: $PACKAGES_DIR"
 }
