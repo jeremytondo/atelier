@@ -1,4 +1,4 @@
-theme = Catppuccin Mocha 
+theme = Catppuccin Macchiato
 macos-titlebar-style = tabs
 
 keybind = ctrl+cmd+m=toggle_split_zoom
@@ -8,6 +8,4 @@ shell-integration-features = sudo
 
 clipboard-read = allow
 clipboard-write = allow
-clipboard-paste-protection = false
-
 macos-option-as-alt = true
