@@ -6,25 +6,12 @@ Atelier is a comprehensive development environment management system designed to
 
 - **Dotfiles Management**: Automated configuration synchronization using GNU Stow for consistent settings across environments.
 - **Cross-Platform Setup**: Streamlined tool installation and configuration across macOS (Homebrew), Arch Linux, and Ubuntu (apt) for consistent dev container environments.
-- **Remote Development**: An elegant SSH-based workflow utilizing Shpool for persistent sessions, enabling seamless remote work and FZF-powered project discovery and management for quick and efficient navigation within your codebase without traditional terminal multiplexers.
 - **Containerized Environments**: Support for reproducible development containers with devcontainers, facilitating isolated and consistent project setups.
 
 ## Core Components
 
-### Atelier Scripts (`scripts/atelier*`)
-
-The atelier command suite provides a unified interface for remote development:
-
-- **`atelier`**: Main entry point for remote operations (`atelier <location> <action>`)
-- **`atelier-launcher`**: Interactive FZF-based project launcher with live SSH location discovery
-- **`atelier-locations`**: Location discovery service (zoxide integration + filesystem scanning)
-- **`atelier-remote`**: Remote session manager using Shpool for persistence
-
 ### Key Features
 
-**Session Management**: Uses Shpool instead of tmux/zellij for lightweight, persistent sessions
-**Live Discovery**: Real-time project location fetching via SSH with smart caching
-**Window Titles**: Automatic terminal title updates for clear workspace identification
 **Smart Navigation**: Zoxide integration for frecency-based project suggestions
 
 ## Installation & Setup
@@ -47,15 +34,6 @@ bash boot.sh      # Bootstrap (clone + basic setup)
 
 ## Development Workflows
 
-### Remote Development Setup
-
-1. **SSH Configuration**: Set `HOST="workstation"` in atelier scripts
-2. **Remote Scripts**: Deploy atelier scripts to `~/.local/bin/` on remote host
-3. **Session Types**:
-   - `edit`: Launch Neovim in project directory
-   - `opencode`: Start OpenCode for AI-assisted development  
-   - `shell`: Open interactive shell in project context
-
 ### Container Development
 
 **Base Container** (`devcontainers/base/`):
@@ -67,12 +45,6 @@ bash boot.sh      # Bootstrap (clone + basic setup)
 - Extends base container with full atelier installation
 - Branch-specific cloning capability
 - Automated dotfile linking via stow
-
-### Project Navigation
-
-**Fast Mode** (default): Uses zoxide for frecency-based suggestions
-**All Mode** (`-all` flag): Deep filesystem scan (3-level directory traversal)
-**FZF Integration**: Fuzzy finding with action selection (edit/shell/opencode)
 
 ## Code Architecture & Standards
 
@@ -86,7 +58,6 @@ bash boot.sh      # Bootstrap (clone + basic setup)
 ### Directory Structure
 ```
 scripts/
-├── atelier*           # Main atelier command suite
 ├── common.sh          # Shared utility functions
 ├── install-arch.sh    # Arch Linux specific installer
 
@@ -127,29 +98,12 @@ stow --simulate --target=$HOME config/.config
 
 ### Development Testing
 ```bash
-# Test atelier scripts locally
-source config/.zshrc
-./scripts/atelier-launcher
-
 # Test package parsing
 source scripts/common.sh
 read_packages_for_platform packages/dev.packages ubuntu
 ```
 
-### Remote Development Testing
-```bash
-# Test SSH connectivity and remote script deployment
-ssh workstation "~/.local/bin/atelier-locations"
-ssh workstation "~/.local/bin/atelier-remote ~/projects/test shell"
-```
-
 ## Development Patterns
-
-### SSH-Based Remote Development
-- **No Terminal Multiplexers**: Direct SSH with Shpool for session persistence
-- **Live Location Discovery**: Real-time project scanning via SSH
-- **Window Management**: Terminal title updates for workspace awareness
-- **Action-Oriented**: Context-aware command execution (edit/shell/opencode)
 
 ### Container-First Development
 - **Reproducible Environments**: Consistent development containers across teams
