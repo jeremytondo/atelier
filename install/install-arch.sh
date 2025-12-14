@@ -44,11 +44,10 @@ install_paru() {
 
 # Install packages from a package file for Arch
 install_packages_from_file() {
-  local category="$1"
-  local file="$2"
+  local file="$1"
   local platform="arch"
   
-  print_step "Installing $category..."
+  print_step "Installing packages from $(basename "$file")..."
 
   local packages=$(read_packages_for_platform "$file" "$platform")
   if [ -z "$packages" ]; then
@@ -68,8 +67,8 @@ main() {
   check_arch_linux
   update_system
   install_paru
-  install_packages_from_file "base packages" "$PACKAGES_DIR/base.packages"
-  install_packages_from_file "development packages" "$PACKAGES_DIR/dev.packages"
+  install_packages_from_file "$PACKAGES_DIR/base.packages"
+  install_packages_from_file "$PACKAGES_DIR/dev.packages"
   
   echo "✅ Setup complete! Package lists: $PACKAGES_DIR"
 }
