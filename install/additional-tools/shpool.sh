@@ -15,7 +15,7 @@ if check_command yay; then
   systemctl --user start shpool
   
   # Enable linger for the current user so services run without an active session
-  loginctl enable-linger
+  sudo loginctl enable-linger "$USER"
 else
   print_warning "yay not found. Skipping shpool installation (likely non-Arch platform)."
 fi
