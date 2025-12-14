@@ -1,49 +1,46 @@
 #!/bin/bash
 
-# Mac Terminal Setup Script
-# Prerequisites: Xcode Developer Tools and Homebrew must be installed
+# Main Install Script
+# Dispatches to platform-specific installers
 
-set -e # Exit on error
+set -e
 
-# Get script directory and source shared library
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/scripts/common.sh"
+INSTALL_DIR="$SCRIPT_DIR/install"
 
-PACKAGES_DIR="$SCRIPT_DIR/packages"
-
-# Update Homebrew
-update_homebrew() {
-  print_step "Updating Homebrew package lists..."
-  brew update
+# Function to run mac installer
+run_mac() {
+  echo "Detected/Selected macOS."
+  bash "$INSTALL_DIR/install-mac.sh"
 }
 
-# Install packages from a given file using brew for Mac
-install_packages_mac() {
-  local category="$1"
-  local file="$2"
-  local platform="mac"
-  
-  print_step "Installing $category..."
+# Function to run arch installer
+run_arch() {
+  echo "Detected/Selected Arch Linux."
+  bash "$INSTALL_DIR/install-arch.sh"
+}
 
-  local packages=$(read_packages_for_platform "$file" "$platform")
-  if [ -z "$packages" ]; then
-    print_warning "No packages found for $platform in $file"
-    return
+# Main logic
+detect_platform() {
+  if [ "$(uname -s)" == "Darwin" ]; then
+    run_mac
+  elif [ -f /etc/arch-release ]; then
+    run_arch
+  else
+    echo "Error: Could not detect compatible platform (macOS or Arch Linux)."
+    echo "Usage: ./install.sh [mac|arch]"
+    exit 1
   fi
-  
-  brew install $packages
 }
 
-# Main installation flow
-main() {
-  echo "=== Mac Terminal Setup ==="
-
-  update_homebrew
-  install_packages_mac "base packages" "$PACKAGES_DIR/base.packages"
-  install_packages_mac "development packages" "$PACKAGES_DIR/dev.packages"
-
-  echo "✅ Setup complete! Package lists: $PACKAGES_DIR"
-}
-
-# Run main function
-main
+if [ "$1" == "mac" ]; then
+  run_mac
+elif [ "$1" == "arch" ]; then
+  run_arch
+elif [ -z "$1" ]; then
+  detect_platform
+else
+  echo "Error: Invalid argument '$1'."
+  echo "Usage: ./install.sh [mac|arch]"
+  exit 1
+fi

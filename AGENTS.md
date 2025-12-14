@@ -51,15 +51,16 @@ bash boot.sh      # Bootstrap (clone + basic setup)
 ### Shell Script Guidelines
 - **Error Handling**: Use `set -e` for fail-fast behavior
 - **Quoting**: Proper variable quoting to handle paths with spaces
-- **Functions**: Source `scripts/common.sh` for shared utilities
+- **Functions**: Source `install/common.sh` for shared utilities
 - **Platform Detection**: Automatic macOS/Ubuntu package resolution
 - **Logging**: Standardized `print_step/error/warning/info` functions
 
 ### Directory Structure
 ```
-scripts/
+install/
 ├── common.sh          # Shared utility functions
 ├── install-arch.sh    # Arch Linux specific installer
+├── install-mac.sh     # macOS specific installer
 
 config/
 └── .config/           # XDG-compliant application configurations
@@ -99,7 +100,7 @@ stow --simulate --target=$HOME config/.config
 ### Development Testing
 ```bash
 # Test package parsing
-source scripts/common.sh
+source install/common.sh
 read_packages_for_platform packages/dev.packages ubuntu
 ```
 
@@ -134,7 +135,7 @@ ssh -T workstation
 cd config && stow --simulate --target=$HOME .
 
 # Test package resolution
-source scripts/common.sh && read_packages_for_platform packages/base.packages $(uname -s | tr '[:upper:]' '[:lower:]')
+source install/common.sh && read_packages_for_platform packages/base.packages $(uname -s | tr '[:upper:]' '[:lower:]')
 
 # Container health check
 docker run --rm jeremytondo/atelier-dev:latest whoami
