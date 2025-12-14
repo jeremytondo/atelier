@@ -42,6 +42,23 @@ install_paru() {
   fi
 }
 
+# Configure Zsh as default shell
+setup_shell() {
+  print_step "Configuring Zsh..."
+  paru -S --needed --noconfirm zsh
+  
+  local zsh_path=$(which zsh)
+  local current_shell=$(getent passwd "$USER" | cut -d: -f7)
+  
+  if [ "$current_shell" != "$zsh_path" ]; then
+    print_info "Changing default shell to zsh ($zsh_path)..."
+    # chsh usually requires password input from user
+    chsh -s "$zsh_path"
+  else
+    print_info "Default shell is already zsh."
+  fi
+}
+
 # Install packages from a package file for Arch
 install_packages_from_file() {
   local file="$1"
@@ -67,6 +84,7 @@ main() {
   check_arch_linux
   update_system
   install_paru
+  setup_shell
   install_packages_from_file "$PACKAGES_DIR/base.packages"
   install_packages_from_file "$PACKAGES_DIR/dev.packages"
   
