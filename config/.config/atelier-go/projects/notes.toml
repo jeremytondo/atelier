@@ -1,0 +1,6 @@
+name = "Notes"
+location = "~/projects/notes/"
+
+[[actions]]
+name = "docker list"
+command = "docker ps"

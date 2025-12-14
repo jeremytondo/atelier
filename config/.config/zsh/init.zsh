@@ -1,10 +1,6 @@
-# Init Mise environemnt manager.
-if command -v mise &> /dev/null; then
-  eval "$(mise activate zsh)"
-fi
-
 # ZSH auto suggestions.
-source ~/.local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+# source ~/.local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 # Initialize Homebrew on MacOS
 if [[ "$(uname -s)" == "Darwin" ]]; then
@@ -12,12 +8,16 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
 fi
 
 # Set up fzf key bindings and fuzzy completion
-if command -v fzf &> /dev/null && [[ "$(uname -s)" == "Linux" ]]; then
-  source /usr/share/doc/fzf/examples/completion.zsh
-  source /usr/share/doc/fzf/examples/key-bindings.zsh
-else
-  source <(fzf --zsh)
-fi
+# if command -v fzf &> /dev/null && [[ "$(uname -s)" == "Linux" ]]; then
+#   source /usr/share/doc/fzf/examples/completion.zsh
+#   source /usr/share/doc/fzf/examples/key-bindings.zsh
+# else
+#   source <(fzf --zsh)
+# fi
+
+# Temporarily set as this will work in all cases I think once I standardize
+# the install methods across platforms.
+source <(fzf --zsh)
 
 # Set default bat color theme
 export BAT_THEME="Nord"
@@ -34,6 +34,11 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 # Load nvm bash_completion (optional but recommended)
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+# If starting an Shpool session named edit, start Neovim. 
+if [[ "$SHPOOL_SESSION_NAME" == "edit" && -z "$NVIM" ]]; then
+    exec nvim
+fi
 
 # Zoxide init must be at the end of this file. 
 if command -v zoxide &> /dev/null; then

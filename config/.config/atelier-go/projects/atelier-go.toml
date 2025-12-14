@@ -1,0 +1,10 @@
+name = "Atelier Go"
+location = "~/projects/atelier-go/"
+
+[[actions]]
+name = "lazygit"
+command = "lazygit"
+
+[[actions]]
+name = "opencode serve"
+command = "/bin/bash -c 'opencode serve --hostname 0.0.0.0 > /tmp/opencode.log 2>&1 & exit'"

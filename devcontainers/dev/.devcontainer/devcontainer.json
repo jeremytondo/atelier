@@ -1,0 +1,15 @@
+{
+  "name": "Atelier Dev",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".",
+    "args": {
+      "BRANCH": "dev"
+    }
+  },
+  "containerEnv": {
+    "LANG": "en_US.UTF-8"
+  },
+  "features": {},
+  "remoteUser": "devuser"
+}

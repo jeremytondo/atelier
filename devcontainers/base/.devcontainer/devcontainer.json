@@ -1,0 +1,27 @@
+{
+  "name": "Atelier Base",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "..",
+    "args": {
+      "VARIANT": "questing"
+    }
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils": {
+      "installZsh": "true",
+      "installOhMyZsh": "false",
+      "installOhMyZshConfig": "false",
+      "username": "devuser",
+      "userUid": "1000",
+      "userGid": "1000"
+    },
+    "ghcr.io/devcontainers/features/git": {
+      "version": "latest",
+      "ppa": "false"
+    },
+    "ghcr.io/devcontainers/features/node": {},
+    "ghcr.io/duduribeiro/devcontainer-features/neovim": {}
+  },
+  "containerUser": "devuser"
+}

@@ -14,6 +14,9 @@ config/.config/create-next-app-nodejs
 config/.config/nextjs-nodejs
 config/.config/github-copilot
 config/.config/gopls
+config/.config/session/dolphin_dolphin_dolphin
+config/.config/sunshine
+config/.config/dolphinrc
 
 # System files
 .DS_Store
