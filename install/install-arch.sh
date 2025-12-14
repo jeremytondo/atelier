@@ -22,19 +22,19 @@ check_arch_linux() {
 # Update system packages
 update_system() {
   print_step "Updating system packages..."
-  sudo pacman -Sy --noconfirm
+  sudo pacman -Syu --noconfirm
 }
 
-# Install paru AUR helper if not present
-install_paru() {
-  if ! check_command paru; then
-    print_step "Installing paru AUR helper..."
+# Install yay AUR helper if not present
+install_yay() {
+  if ! check_command yay; then
+    print_step "Installing yay AUR helper..."
     sudo pacman -S --needed --noconfirm git base-devel
 
     local tmp_dir=$(mktemp -d)
-    git clone https://aur.archlinux.org/paru.git "$tmp_dir/paru"
+    git clone https://aur.archlinux.org/yay.git "$tmp_dir/yay"
 
-    pushd "$tmp_dir/paru" >/dev/null
+    pushd "$tmp_dir/yay" >/dev/null
     makepkg -si --noconfirm
     popd >/dev/null
 
@@ -45,7 +45,7 @@ install_paru() {
 # Configure Zsh as default shell
 setup_shell() {
   print_step "Configuring Zsh..."
-  paru -S --needed --noconfirm zsh
+  yay -S --needed --noconfirm zsh
 
   local zsh_path=$(which zsh)
   local current_shell=$(getent passwd "$USER" | cut -d: -f7)
@@ -72,9 +72,9 @@ install_packages_from_file() {
     return
   fi
 
-  # Install all packages using paru
+  # Install all packages using yay
   print_info "Installing packages:$packages"
-  paru -S --needed --noconfirm $packages
+  yay -S --needed --noconfirm $packages
 }
 
 # Main installation flow
@@ -83,7 +83,7 @@ main() {
 
   check_arch_linux
   update_system
-  install_paru
+  install_yay
   setup_shell
   install_packages_from_file "$PACKAGES_DIR/base.packages"
 

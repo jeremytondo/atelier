@@ -7,12 +7,12 @@ source "$SCRIPT_DIR/../common.sh"
 
 print_step "Installing Docker..."
 
-if check_command paru; then
+if check_command yay; then
   print_info "Installing docker package..."
-  paru -S --noconfirm --needed docker
+  yay -S --noconfirm --needed docker
   
   print_info "Installing docker-buildx..."
-  paru -S --noconfirm --needed docker-buildx
+  yay -S --noconfirm --needed docker-buildx
 
   print_info "Enabling and starting docker.socket..."
   sudo systemctl enable --now docker.socket
@@ -22,5 +22,5 @@ if check_command paru; then
   
   print_info "Docker installation complete. You may need to log out and back in for group changes to take effect."
 else
-  print_warning "paru not found. Skipping Docker installation (likely non-Arch platform)."
+  print_warning "yay not found. Skipping Docker installation (likely non-Arch platform)."
 fi

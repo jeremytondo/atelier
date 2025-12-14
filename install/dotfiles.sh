@@ -12,8 +12,8 @@ print_step "Linking dotfiles..."
 # Check for stow
 if ! check_command stow; then
   print_warning "stow not found. Attempting to install..."
-  if check_command paru; then
-    paru -S --needed --noconfirm stow
+  if check_command yay; then
+    yay -S --needed --noconfirm stow
   elif check_command brew; then
     brew install stow
   elif check_command apt-get; then
