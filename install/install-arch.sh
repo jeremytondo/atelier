@@ -30,12 +30,15 @@ install_paru() {
   if ! check_command paru; then
     print_step "Installing paru AUR helper..."
     sudo pacman -S --needed --noconfirm git base-devel
-    cd /tmp
-    git clone https://aur.archlinux.org/paru.git
-    cd paru
+    
+    local tmp_dir=$(mktemp -d)
+    git clone https://aur.archlinux.org/paru.git "$tmp_dir/paru"
+    
+    pushd "$tmp_dir/paru" > /dev/null
     makepkg -si --noconfirm
-    cd - > /dev/null
-    rm -rf /tmp/paru
+    popd > /dev/null
+    
+    rm -rf "$tmp_dir"
   fi
 }
 
