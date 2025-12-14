@@ -28,16 +28,22 @@ update_system() {
 # Install paru AUR helper if not present
 install_paru() {
   if ! check_command paru; then
-    print_step "Installing paru AUR helper..."
+    print_step "Installing paru-bin AUR helper..."
+    # Ensure essential build tools are installed (needed for makepkg on AUR)
     sudo pacman -S --needed --noconfirm git base-devel
 
+    # Use a temporary directory
     local tmp_dir=$(mktemp -d)
-    git clone https://aur.archlinux.org/paru.git "$tmp_dir/paru"
 
-    pushd "$tmp_dir/paru" >/dev/null
+    # CLONE THE BINARY PACKAGE (paru-bin)
+    git clone https://aur.archlinux.org/paru-bin.git "$tmp_dir/paru-bin"
+
+    # Build and install the binary package
+    pushd "$tmp_dir/paru-bin" >/dev/null
     makepkg -si --noconfirm
     popd >/dev/null
 
+    # Clean up
     rm -rf "$tmp_dir"
   fi
 }
@@ -97,4 +103,3 @@ main() {
 
 # Run main function
 main
-
