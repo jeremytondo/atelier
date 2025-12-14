@@ -25,27 +25,18 @@ update_system() {
   sudo pacman -Sy --noconfirm
 }
 
-# Install yay AUR helper if not present
-install_yay() {
-  if ! check_command yay; then
-    print_step "Installing yay AUR helper..."
+# Install paru AUR helper if not present
+install_paru() {
+  if ! check_command paru; then
+    print_step "Installing paru AUR helper..."
     sudo pacman -S --needed --noconfirm git base-devel
     cd /tmp
-    git clone https://aur.archlinux.org/yay.git
-    cd yay
+    git clone https://aur.archlinux.org/paru.git
+    cd paru
     makepkg -si --noconfirm
     cd - > /dev/null
-    rm -rf /tmp/yay
+    rm -rf /tmp/paru
   fi
-}
-
-# Check if package should be installed from AUR
-is_aur_package() {
-  local pkg="$1"
-  case "$pkg" in
-    "lazydocker") return 0 ;;
-    *) return 1 ;;
-  esac
 }
 
 # Install packages from a package file for Arch
@@ -62,28 +53,9 @@ install_packages_from_file() {
     return
   fi
 
-  # Separate AUR vs official packages
-  local pacman_packages=""
-  local aur_packages=""
-
-  for pkg in $packages; do
-    if is_aur_package "$pkg"; then
-      aur_packages="$aur_packages $pkg"
-    else
-      pacman_packages="$pacman_packages $pkg"
-    fi
-  done
-
-  # Install with appropriate package managers
-  if [ -n "$pacman_packages" ]; then
-    print_info "Installing official packages:$pacman_packages"
-    sudo pacman -S --needed --noconfirm $pacman_packages
-  fi
-  
-  if [ -n "$aur_packages" ]; then
-    print_info "Installing AUR packages:$aur_packages"
-    yay -S --needed --noconfirm $aur_packages
-  fi
+  # Install all packages using paru
+  print_info "Installing packages:$packages"
+  paru -S --needed --noconfirm $packages
 }
 
 # Main installation flow
@@ -92,7 +64,7 @@ main() {
   
   check_arch_linux
   update_system
-  install_yay
+  install_paru
   install_packages_from_file "base packages" "$PACKAGES_DIR/base.packages"
   install_packages_from_file "development packages" "$PACKAGES_DIR/dev.packages"
   
