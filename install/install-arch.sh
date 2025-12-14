@@ -86,6 +86,10 @@ main() {
   install_paru
   setup_shell
   install_packages_from_file "$PACKAGES_DIR/base.packages"
+  
+  # Link dotfiles
+  bash "$SCRIPT_DIR/dotfiles.sh"
+  
   install_packages_from_file "$PACKAGES_DIR/dev.packages"
   
   echo "✅ Setup complete! Package lists: $PACKAGES_DIR"
