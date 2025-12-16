@@ -61,13 +61,13 @@ get_script_dir() {
 parse_package_for_platform() {
   local line="$1"
   local target_platform="$2"
-  
+
   # Split line into tokens
   local tokens=($line)
   local base_package=""
   local found_target_override=""
   local found_any_platform=false
-  
+
   # Process each token
   for token in "${tokens[@]}"; do
     if [[ "$token" == *":"* ]]; then
@@ -75,7 +75,7 @@ parse_package_for_platform() {
       local platform=$(echo "$token" | cut -d: -f1)
       local package=$(echo "$token" | cut -d: -f2)
       found_any_platform=true
-      
+
       if [ "$platform" == "$target_platform" ]; then
         found_target_override="$package"
       fi
@@ -84,7 +84,7 @@ parse_package_for_platform() {
       base_package="$token"
     fi
   done
-  
+
   # Apply the logic rules
   if [ -n "$found_target_override" ]; then
     # Rule 2 & 3: Platform override found
@@ -106,47 +106,50 @@ read_packages_for_platform() {
   local file="$1"
   local platform="$2"
   local packages=""
-  
+
   if [ ! -f "$file" ]; then
     print_error "Package file not found: $file"
     return 1
   fi
-  
+
   # Process each non-comment, non-empty line
   while IFS= read -r line; do
     # Skip comments and empty lines
     [[ "$line" =~ ^#.*$ ]] && continue
     [[ -z "$line" ]] && continue
-    
+
     # Parse package for this platform
     local pkg=$(parse_package_for_platform "$line" "$platform")
-    
+
     # Add to package list if not empty
     if [ -n "$pkg" ]; then
       packages="$packages $pkg"
     fi
-  done < "$file"
-  
+  done <"$file"
+
   echo "$packages"
 }
-# Request sudo permissions and keep alive
-ask_for_sudo() {
-  print_info "Prompting for sudo password..."
-  if sudo -v; then
-    # Keep-alive: update existing sudo time stamp if set, otherwise do nothing.
-    # We do this in the background with error checking disabled (set +e)
-    # so the loop doesn't exit if sudo -n fails momentarily.
-    (
-      set +e
-      while true; do
-        sudo -n -v
-        sleep 30
-        kill -0 "$$" || exit
-      done >/dev/null 2>&1 < /dev/null
-    ) &
-    print_step "Sudo credentials updated."
-  else
+
+# Request sudo permissions and configure for unattended install
+init_sudo() {
+  print_info "Configuring sudo for unattended installation..."
+
+  # 1. Ask for password once to validate credentials
+  if ! sudo -v; then
     print_error "Sudo password incorrect or sudo not available."
     exit 1
   fi
+
+  # 2. Define the temp file location
+  local SUDO_TMP="/etc/sudoers.d/atelier-install-tmp"
+
+  # 3. Set a trap to DELETE this file automatically when the script exits or is killed
+  #    We append to any existing trap if possible, but for this script, we likely own the trap.
+  trap "sudo rm -f $SUDO_TMP; print_info 'Sudo configuration cleaned up.'" EXIT INT TERM
+
+  # 4. Create the file increasing the timeout to 60 minutes
+  #    We use 'tee' to write it with root permissions
+  echo "Defaults:$USER timestamp_timeout=60" | sudo tee "$SUDO_TMP" >/dev/null
+
+  print_step "Sudo credentials cached for duration of install."
 }

@@ -103,7 +103,7 @@ main() {
   echo "=== Arch Linux Terminal Setup ==="
 
   check_arch_linux
-  ask_for_sudo
+  init_sudo
   update_system
   install_yay
   setup_shell
