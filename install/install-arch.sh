@@ -52,8 +52,8 @@ setup_shell() {
 
   if [ "$current_shell" != "$zsh_path" ]; then
     print_info "Changing default shell to zsh ($zsh_path)..."
-    # chsh usually requires password input from user
-    chsh -s "$zsh_path"
+    # Use sudo usermod to avoid authentication token errors common in some environments
+    sudo usermod -s "$zsh_path" "$USER"
   else
     print_info "Default shell is already zsh."
   fi
