@@ -150,6 +150,7 @@ init_sudo() {
   # 4. Create the file increasing the timeout to 60 minutes
   #    We use 'tee' to write it with root permissions
   echo "Defaults:$USER timestamp_timeout=60" | sudo tee "$SUDO_TMP" >/dev/null
+  sudo chmod 0440 "$SUDO_TMP"
 
   print_step "Sudo credentials cached for duration of install."
 }
