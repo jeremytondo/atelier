@@ -93,6 +93,9 @@ main() {
   # Install additional tools
   bash "$SCRIPT_DIR/additional-tools/all.sh"
 
+  # Install dotfiles
+  bash "$SCRIPT_DIR/dotfiles.sh"
+
   echo "✅ Setup complete! Package lists: $PACKAGES_DIR"
 }
 
