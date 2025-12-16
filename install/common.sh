@@ -129,28 +129,3 @@ read_packages_for_platform() {
 
   echo "$packages"
 }
-
-# Request sudo permissions and configure for unattended install
-init_sudo() {
-  print_info "Configuring sudo for unattended installation..."
-
-  # 1. Ask for password once to validate credentials
-  if ! sudo -v; then
-    print_error "Sudo password incorrect or sudo not available."
-    exit 1
-  fi
-
-  # 2. Define the temp file location
-  local SUDO_TMP="/etc/sudoers.d/atelier-install-tmp"
-
-  # 3. Set a trap to DELETE this file automatically when the script exits or is killed
-  #    We append to any existing trap if possible, but for this script, we likely own the trap.
-  trap "sudo rm -f $SUDO_TMP; print_info 'Sudo configuration cleaned up.'" EXIT INT TERM
-
-  # 4. Create the file increasing the timeout to 60 minutes
-  #    We use 'tee' to write it with root permissions
-  echo "Defaults:$USER timestamp_timeout=60" | sudo tee "$SUDO_TMP" >/dev/null
-  sudo chmod 0440 "$SUDO_TMP"
-
-  print_step "Sudo credentials cached for duration of install."
-}
