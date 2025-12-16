@@ -22,9 +22,14 @@ alias d='docker'
 alias r='rails'
 alias lzg='lazygit'
 alias lzd='lazydocker'
-alias at='atelier'
 alias dc='devcontainer'
-alias ag='atelier-client'
+
+# Atelier Go
+alias ag='atelier-go client'
+alias ags='atelier-go client --sessions'
+alias agp='atelier-go client --projects'
+alias agf='atelier-go client --frequent'
+alias aga='atelier-go client --all'
 
 if [[ "$(uname -s)" == "Linux" ]]; then
   alias bat='batcat'
@@ -38,3 +43,6 @@ alias gcad='git commit -a --amend'
 # Compression
 compress() { tar -czf "${1%/}.tar.gz" "${1%/}"; }
 alias decompress="tar -xzf"
+
+# Edit Atelier Config
+alias atc='nvim ~/.local/share/atelier/config/'
