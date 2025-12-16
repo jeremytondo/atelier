@@ -139,10 +139,10 @@ ask_for_sudo() {
     (
       set +e
       while true; do
-        sudo -n true
-        sleep 60
+        sudo -n -v
+        sleep 30
         kill -0 "$$" || exit
-      done >/dev/null 2>&1
+      done >/dev/null 2>&1 < /dev/null
     ) &
     print_step "Sudo credentials updated."
   else
