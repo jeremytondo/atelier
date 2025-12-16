@@ -77,6 +77,27 @@ install_packages_from_file() {
   yay -S --needed --noconfirm $packages
 }
 
+# Cleanup default bash files
+cleanup_bash_files() {
+  print_step "Cleaning up default Bash files..."
+  local backup_dir="$HOME/.bash.bak"
+  local files=(".bash_history" ".bash_logout" ".bash_profile" ".bashrc")
+
+  mkdir -p "$backup_dir"
+
+  for file in "${files[@]}"; do
+    if [ -f "$HOME/$file" ]; then
+      mv -f --backup=numbered "$HOME/$file" "$backup_dir/" ||
+        print_warning "Could not move $file to backup location. Skipping."
+
+      # Verify move was successful (file exists in backup or source is gone)
+      if [ -f "$backup_dir/$file" ] || [ ! -f "$HOME/$file" ]; then
+        print_info "Moved $file to $backup_dir/"
+      fi
+    fi
+  done
+}
+
 # Main installation flow
 main() {
   echo "=== Arch Linux Terminal Setup ==="
@@ -95,6 +116,9 @@ main() {
 
   # Install dotfiles
   bash "$SCRIPT_DIR/dotfiles.sh"
+
+  # Cleaup default bash config
+  cleanup_bash_files
 
   echo "✅ Setup complete! Package lists: $PACKAGES_DIR"
 }
