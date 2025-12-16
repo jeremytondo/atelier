@@ -129,3 +129,16 @@ read_packages_for_platform() {
   
   echo "$packages"
 }
+# Request sudo permissions and keep alive
+ask_for_sudo() {
+  print_info "Prompting for sudo password..."
+  if sudo -v; then
+    # Keep-alive: update existing sudo time stamp if set, otherwise do nothing.
+    # We do this in the background
+    while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done >/dev/null 2>&1 &
+    print_step "Sudo credentials updated."
+  else
+    print_error "Sudo password incorrect or sudo not available."
+    exit 1
+  fi
+}
