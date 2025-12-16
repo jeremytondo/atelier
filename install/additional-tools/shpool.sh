@@ -8,7 +8,7 @@ source "$SCRIPT_DIR/../common.sh"
 print_step "Installing shpool..."
 
 if check_command yay; then
-  yay -S --noconfirm --needed --nocheck shpool
+  yay -S --noconfirm --needed shpool --mflags "--nocheck"
 
   print_info "Configuring systemd services for shpool..."
   systemctl --user enable shpool
