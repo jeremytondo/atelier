@@ -18,34 +18,40 @@ return {
           SnacksPickerNormal = { bg = colors.base },
           SnacksPickerBorder = { bg = colors.base, fg = colors.surface0 },
 
-          -- 1. HEADERS: Blues and Purples (Text Only)
+          -- HEADERS: Blues and Purples (Text Only)
           ["@markup.heading.1.markdown"] = { fg = colors.mauve, bold = true }, -- Soft Purple
           ["@markup.heading.2.markdown"] = { fg = colors.blue, bold = true }, -- Standard Blue
           ["@markup.heading.3.markdown"] = { fg = colors.sky, bold = true }, -- Light Blue
           ["@markup.heading.4.markdown"] = { fg = colors.lavender, bold = true }, -- Light Purple-Grey
           ["@markup.heading.5.markdown"] = { fg = colors.sapphire, bold = true }, -- Mid Blue
 
-          -- 2. PLUGIN ICONS: Match the text colors above
+          -- PLUGIN ICONS: Match the text colors above
           RenderMarkdownH1 = { fg = colors.mauve },
           RenderMarkdownH2 = { fg = colors.blue },
           RenderMarkdownH3 = { fg = colors.sky },
           RenderMarkdownH4 = { fg = colors.lavender },
 
-          -- 3. BOLD & ITALICS: No extra colors, just formatting
-          ["@markup.strong.markdown_inline"] = { fg = colors.text, bold = true },
-          ["@markup.italic.markdown_inline"] = { fg = colors.text, italic = true },
-          RenderMarkdownBold = { fg = colors.text, bold = true },
+          -- BOLD & ITALICS: No extra colors, just formatting
+          ["@markup.strong.markdown_inline"] = { fg = colors.subtext1, bold = true },
+          ["@markup.italic.markdown_inline"] = { fg = colors.subtext1, italic = true },
+          RenderMarkdownBold = { fg = colors.subtext1, bold = true },
 
-          -- 4. BULLETS & DASHES: Subtle lavender accents
+          -- BULLETS & DASHES: Subtle lavender accents
           RenderMarkdownBullet = { fg = colors.lavender },
           RenderMarkdownDash = { fg = colors.surface2 }, -- Subtle line for '---'
 
-          -- 5. CODE BLOCKS: Subtle surface backgrounds instead of green
+          -- CODE BLOCKS: Subtle surface backgrounds instead of green
           ["@markup.raw.markdown_inline"] = { bg = colors.surface0, fg = colors.subtext0 },
           RenderMarkdownCode = { bg = colors.mantle },
           RenderMarkdownCodeInline = { bg = colors.surface0, fg = colors.subtext0 },
 
-          -- 6. REMOVE ALL BACKGROUND BARS (Safety Override)
+          -- NOTE BLOCKS
+          DiagnosticInfo = { fg = colors.blue }, -- Icon/Title color
+          RenderMarkdownInfo = { fg = colors.blue }, -- Plugin icon color
+          RenderMarkdownQuote = { fg = colors.blue }, -- Vertical bar color
+          ["@markup.quote.markdown"] = { fg = colors.subtext1 }, -- Subtle Note text
+
+          -- REMOVE ALL BACKGROUND BARS (Safety Override)
           RenderMarkdownH1Bg = { bg = "none" },
           RenderMarkdownH2Bg = { bg = "none" },
           RenderMarkdownH3Bg = { bg = "none" },

@@ -13,6 +13,9 @@ return {
         style = "language",
         highlight = "RenderMarkdownCode",
       },
+      quote = {
+        repeat_linebreak = true,
+      },
     },
   },
 }
