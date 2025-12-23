@@ -45,4 +45,4 @@ compress() { tar -czf "${1%/}.tar.gz" "${1%/}"; }
 alias decompress="tar -xzf"
 
 # Edit Atelier Config
-alias atc='nvim ~/.local/share/atelier/config/'
+alias atc='nvim ~/.local/share/atelier/config/.config/'
