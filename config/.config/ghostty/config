@@ -4,7 +4,7 @@ macos-titlebar-style = tabs
 keybind = ctrl+cmd+m=toggle_split_zoom
 keybind = global:cmd+option+grave_accent=toggle_quick_terminal
 
-shell-integration-features = sudo
+shell-integration-features = sudo,ssh-terminfo
 
 clipboard-read = allow
 clipboard-write = allow

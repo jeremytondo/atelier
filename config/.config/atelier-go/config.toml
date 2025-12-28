@@ -1,0 +1,20 @@
+[[projects]]
+name = "Atelier Go"
+path = "/Users/jeremytondo/Projects/atelier-go"
+
+  [[projects.actions]]
+  name = "Nvim"
+  command = "nvim ."
+
+  [[projects.actions]]
+  name = "OpenCode"
+  command = "opencode"
+
+
+[[projects]]
+name = "Atelier"
+path = "/Users/jeremytondo/.local/share/atelier"
+  
+  [[projects.actions]]
+  name = "Nvim"
+  command = "nvim ."

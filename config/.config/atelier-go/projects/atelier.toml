@@ -1,2 +1,6 @@
 name = "Atelier"
 location = "~/.local/share/atelier/"
+
+[[actions]]
+name = "nvim"
+command = "nvim ."

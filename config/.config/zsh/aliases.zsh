@@ -25,11 +25,9 @@ alias lzd='lazydocker'
 alias dc='devcontainer'
 
 # Atelier Go
-alias ag='atelier-go client'
-alias ags='atelier-go client --sessions'
-alias agp='atelier-go client --projects'
-alias agf='atelier-go client --frequent'
-alias aga='atelier-go client --all'
+alias ag='atelier-go'
+alias ags='atelier-go sessions list'
+alias agk='atelier-go sessions kill'
 
 if [[ "$(uname -s)" == "Linux" ]]; then
   alias bat='batcat'
