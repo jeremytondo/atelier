@@ -1,0 +1,11 @@
+name = "TourneyMate App"
+path = "~/Projects/tourneymate-app/"
+
+[[actions]]
+name = "Nvim"
+command = "nvim ."
+
+[[actions]]
+name = "OpenCode"
+command = "opencode"
+
