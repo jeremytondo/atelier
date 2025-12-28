@@ -1,8 +1,0 @@
-port = "9002"
-default-filter = "projects"
-
-[keys]
-sessions = "ctrl-s"
-projects = "ctrl-p"
-all = "ctrl-a"
-frequent = "ctrl-f"

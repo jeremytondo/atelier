@@ -1,5 +1,5 @@
 name = "Atelier"
-location = "~/.local/share/atelier/"
+path = "~/.local/share/atelier/"
 
 [[actions]]
 name = "nvim"

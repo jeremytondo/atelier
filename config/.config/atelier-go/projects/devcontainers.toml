@@ -1,5 +1,5 @@
 name = "Devcontainers Test"
-location = "~/.local/share/atelier/devcontainers/dev/"
+path = "~/.local/share/atelier/devcontainers/dev/"
 
 [[actions]]
 name = "devcontainer shell"
