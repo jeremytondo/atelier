@@ -3,7 +3,7 @@ path = "~/.local/share/atelier/devcontainers/dev/"
 
 [[actions]]
 name = "devcontainer shell"
-command = "devcontainer exec --workspace-folder . zsh"
+command = "PATH=/home/jeremytondo/.nvm/versions/node/v25.2.1/bin:$PATH devcontainer exec --workspace-folder . zsh"
 
 [[actions]]
 name = "devcontainer nvim"
