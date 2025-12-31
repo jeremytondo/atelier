@@ -30,9 +30,9 @@ alias ags='atelier-go sessions list'
 alias agk='atelier-go sessions kill'
 
 # Atelier Go Remote Workstation Commands
-alias agw='ssh -t ag -- /home/jeremytondo/.local/bin/atelier-go'
-alias agws='ssh -t ag -- /home/jeremytondo/.local/bin/atelier-go sessions list'
-alias agwk='ssh -t ag -- /home/jeremytondo/.local/bin/atelier-go sessions kill'
+alias agw='autossh -M 0 -q -t ag -- /home/jeremytondo/.local/bin/atelier-go'
+alias agws='autossh -M 0 -q -t ag -- /home/jeremytondo/.local/bin/atelier-go sessions list'
+alias agwk='autossh -M 0 -q -t ag -- /home/jeremytondo/.local/bin/atelier-go sessions kill'
 
 if [[ "$(uname -s)" == "Linux" ]]; then
   alias bat='batcat'
