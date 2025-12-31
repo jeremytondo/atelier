@@ -1,6 +1,8 @@
 theme = Catppuccin Macchiato
 macos-titlebar-style = tabs
 
+window-title-font-family = Inter Nerd Font 
+
 keybind = ctrl+cmd+m=toggle_split_zoom
 keybind = global:cmd+option+grave_accent=toggle_quick_terminal
 
