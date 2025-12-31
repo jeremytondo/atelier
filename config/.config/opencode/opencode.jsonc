@@ -10,12 +10,7 @@
       "model": "google/gemini-3-flash-preview",
     },
     "build": {
-      "model": "google/gemini-3-pro-preview"
+      "model": "google/gemini-3-flash-preview"
     }
   },
-  // "agent": {
-  //   "research": {
-  //     "path": "./agent/research.md"
-  //   }
-  // }
 }

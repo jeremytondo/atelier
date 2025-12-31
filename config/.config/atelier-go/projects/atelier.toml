@@ -1,6 +1,0 @@
-name = "Atelier"
-path = "~/.local/share/atelier/"
-
-[[actions]]
-name = "nvim"
-command = "nvim ."
