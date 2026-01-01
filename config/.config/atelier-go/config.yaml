@@ -5,3 +5,5 @@ projects:
     actions:
       - name: "nvim"
         command: "nvim ."
+      - name: "opencode"
+        command: "opencode"
