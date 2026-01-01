@@ -4,6 +4,6 @@ projects:
     path: "~/.local/share/atelier"
     actions:
       - name: "nvim"
-        command: "nvim ."
+        command: "nvim"
       - name: "opencode"
         command: "opencode"
