@@ -6,3 +6,10 @@ projects:
         command: "PATH=/home/jeremytondo/.nvm/versions/node/v25.2.1/bin:$PATH devcontainer exec --workspace-folder . zsh"
       - name: "devcontainer nvim"
         command: "PATH=/home/jeremytondo/.nvm/versions/node/v25.2.1/bin:$PATH devcontainer exec --workspace-folder . nvim"
+  - name: "Atelier Go"
+    path: "~/projects/atelier-go/"
+    actions:
+      - name: "Nvim"
+        command: "nvim"
+      - name: "opencode"
+        command: "opencode"
