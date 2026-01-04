@@ -1,15 +1,5 @@
 projects:
   - name: "TourneyMate App"
     path: "~/Projects/tourneymate-app/"
-    actions:
-      - name: "Nvim"
-        command: "nvim"
-      - name: "OpenCode"
-        command: "opencode"
   - name: "Atelier Go"
     path: "~/Projects/atelier-go/"
-    actions:
-      - name: "Nvim"
-        command: "nvim"
-      - name: "OpenCode"
-        command: "opencode"
