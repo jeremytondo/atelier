@@ -8,3 +8,6 @@ projects:
         command: "PATH=/home/jeremytondo/.nvm/versions/node/v25.2.1/bin:$PATH devcontainer exec --workspace-folder . nvim"
   - name: "Atelier Go"
     path: "~/projects/atelier-go/"
+  - name: "Workstation Home"
+    path: "~/"
+    shell-default: true
