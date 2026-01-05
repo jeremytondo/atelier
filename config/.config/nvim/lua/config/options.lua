@@ -4,9 +4,6 @@
 
 vim.opt.colorcolumn = "80" -- Set the line length to 80 characters
 
--- Setup clipboard based on environment
-
-
 -- Define OSC 52 clipboard configuration
 local osc52_clipboard = {
   name = "OSC 52",
