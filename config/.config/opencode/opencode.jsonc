@@ -5,6 +5,20 @@
   "plugin": [
     "opencode-gemini-auth"
   ],
+  "provider": {
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama (local)",
+      "options": {
+        "baseURL": "http://localhost:11434/v1"
+      },
+      "models": {
+        "qwen3-coder:30b": {
+          "name": "Qwen3 Coder 30B"
+        }
+      }
+    }
+  },
   "mode": {
     "plan": {
       "model": "google/gemini-3-flash-preview",
