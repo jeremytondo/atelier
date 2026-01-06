@@ -29,6 +29,33 @@ install_base_tools() {
     git
 }
 
+# Install GitHub CLI
+install_github_cli() {
+  print_step "Installing GitHub CLI..."
+  
+  if ! command -v gh >/dev/null; then
+    # Ensure wget is installed
+    if ! command -v wget >/dev/null; then
+       print_info "Installing wget..."
+       sudo DEBIAN_FRONTEND=noninteractive apt-get install -y wget
+    fi
+
+    sudo mkdir -p -m 755 /etc/apt/keyrings
+    local out=$(mktemp)
+    wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg
+    cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
+    rm "$out"
+    sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+    sudo mkdir -p -m 755 /etc/apt/sources.list.d
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+    
+    sudo apt-get update
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y gh
+  else
+    print_info "GitHub CLI already installed"
+  fi
+}
+
 # Install Zsh plugins
 install_zsh_plugins() {
   print_step "Installing zsh plugins..."
@@ -59,6 +86,7 @@ install_zsh_plugins() {
 # Main execution
 update_system
 install_base_tools
+install_github_cli
 install_zsh_plugins
 
 # Install dotfiles
