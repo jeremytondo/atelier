@@ -1,3 +1,6 @@
+actions:
+  - name: "OpenCode"
+    command: "opencode"
 projects:
   - name: "TourneyMate App"
     path: "~/Projects/tourneymate-app/"

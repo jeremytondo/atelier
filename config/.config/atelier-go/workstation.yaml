@@ -1,3 +1,6 @@
+actions:
+  - name: "OpenCode"
+    command: "opencode"
 projects:
   - name: "Devcontainers Test"
     path: "~/.local/share/atelier/devcontainers/dev/"
