@@ -1,0 +1,4 @@
+# Work Cloudtop Config  
+actions:
+  - name: "Gemini"
+    command: "gemini"
