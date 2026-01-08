@@ -2,3 +2,7 @@
 actions:
   - name: "Gemini"
     command: "gemini"
+projects:
+  - name: "Home"
+    path: "~/"
+    shell-default: true
