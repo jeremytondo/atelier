@@ -16,6 +16,9 @@ return {
       quote = {
         repeat_linebreak = true,
       },
+      checkbox = {
+        enabled = true,
+      },
     },
   },
 }
