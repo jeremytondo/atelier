@@ -42,6 +42,14 @@ agw() {
     autossh -M 0 -q -t ag -- "/home/jeremytondo/.local/bin/atelier-go --client-id=$ATELIER_CLIENT_ID"
 }
 
+agc() {
+    # Generate a unique ID for this terminal tab if not already set
+    export ATELIER_CLIENT_ID="${ATELIER_CLIENT_ID:-$(uuidgen | cut -d'-' -f1)}"
+    
+    # Pass the ID to the remote atelier-go command
+    autossh -M 0 -q -t cloudtop -- "/usr/local/google/home/jeremytondo/.local/bin/atelier-go --client-id=$ATELIER_CLIENT_ID"
+}
+
 if [[ "$(uname -s)" == "Linux" ]]; then
   alias bat='batcat'
 fi
