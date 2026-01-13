@@ -3,7 +3,5 @@ actions:
   - name: "Gemini"
     command: "gemini"
 projects:
-  - name: "Gemini Notes"
-    path: "~/Projects/gemini-notes/"
   - name: "Atelier Notes"
     path: "~/Projects/Atelier-Notes/atelier-notes/"
