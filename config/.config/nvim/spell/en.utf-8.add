@@ -14,3 +14,5 @@ lifecycle
 linters
 namespaced
 LLM
+config
+whitespace
