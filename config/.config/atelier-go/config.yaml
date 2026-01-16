@@ -4,3 +4,7 @@ actions:
 projects:
   - name: "Atelier"
     path: "~/.local/share/atelier/"
+  - name: "LazyNotes"
+    path: "~/Projects/LazyNotes/lazynotes/"
+  - name: "Gemini Notes"
+    path: "~/Projects/Gemini-Notes/gemini-notes/"
