@@ -1,6 +1,8 @@
 actions:
   - name: "OpenCode"
     command: "opencode"
+  - name: "Gemini"
+    command: "gemini"
 projects:
   - name: "TourneyMate App"
     path: "~/Projects/tourneymate-app/"
