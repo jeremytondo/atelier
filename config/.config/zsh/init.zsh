@@ -36,6 +36,11 @@ export NVM_DIR="$HOME/.nvm"
 # Load nvm bash_completion (optional but recommended)
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
+# Set default editor
+export EDITOR="nvim"
+export VISUAL="$EDITOR"
+
+
 # Zoxide init must be at the end of this file. 
 if command -v zoxide &> /dev/null; then
   eval "$(zoxide init zsh)"
