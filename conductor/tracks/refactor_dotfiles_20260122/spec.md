@@ -1,7 +1,7 @@
 # Specification: Modular Dotfiles Refactor
 
 ## Context
-The current configuration setup needs to be refactored to support a modular, package-based approach. This will allow for machine-specific configurations (Workstation, Mac, Ubuntu) while maintaining a core set of common dotfiles. The critical constraint is that GNU Stow must *never* fold directories; it must always symlink individual files to prevent data loss and ensure clean overrides.
+The current configuration setup needs to be refactored to support a modular, package-based approach. This will allow for machine-specific configurations (Workstation, Mac-Home, Mac-Work, Cloudtop) while maintaining a core set of common dotfiles. The critical constraint is that GNU Stow must *never* fold directories; it must always symlink individual files to prevent data loss and ensure clean overrides.
 
 ## Goals
 1.  **Modular Structure:** Split `config/.config` into logical packages: `common`, `workstation`, `mac`, `ubuntu`.
@@ -21,10 +21,8 @@ The current configuration setup needs to be refactored to support a modular, pac
     │   └── .config/
     ├── workstation/     # Workstation-specific tools
     │   └── .config/
-    ├── mac/             # macOS-specific tools (aerospace, skhd)
+    ├── mac-home/             # macOS-specific tools (aerospace, skhd)
     │   └── .config/
-    └── ubuntu/          # Ubuntu-specific tools
-        └── .config/
     ```
 
 ### 2. Shell Integration
