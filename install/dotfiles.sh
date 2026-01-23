@@ -11,17 +11,8 @@ print_step "Linking dotfiles..."
 
 # Check for stow
 if ! check_command stow; then
-  print_warning "stow not found. Attempting to install..."
-  if check_command yay; then
-    yay -S --needed --noconfirm stow
-  elif check_command brew; then
-    brew install stow
-  elif check_command apt-get; then
-    sudo apt-get install -y stow
-  else
-    print_error "Please install GNU Stow manually."
-    exit 1
-  fi
+  print_warning "Stow not found. Please install before running this script."
+  exit 1
 fi
 
 # Ensure config directory exists
@@ -30,9 +21,21 @@ if [ ! -d "$REPO_ROOT/config" ]; then
   exit 1
 fi
 
+# Handle existing .config backup logic
+if [ -e "$HOME/.config" ]; then
+  print_warning "Found existing $HOME/.config. Backing up to $HOME/.config.bak..."
+
+  if [ -e "$HOME/.config.bak" ]; then
+    print_error "Backup destination $HOME/.config.bak already exists. Cannot safely backup existing config. Aborting."
+    exit 1
+  fi
+
+  mv "$HOME/.config" "$HOME/.config.bak"
+fi
+
 # Run stow
 # We treat 'config' as the package name, located in REPO_ROOT
 print_info "Stowing 'config' package from $REPO_ROOT to $HOME..."
-stow -d "$REPO_ROOT" -t "$HOME" config --verbose 1
+stow --dotfiles -d "$REPO_ROOT" -t "$HOME" config --verbose 1
 
 print_step "Dotfiles linked successfully."
