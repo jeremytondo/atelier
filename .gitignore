@@ -1,24 +1,25 @@
 .git
 
-# Config files and folders to ignore.
-config/.config/gh/hosts.yml
-config/.config/tmux/plugins
-config/.config/go
-config/.config/iterm2
-config/.config/systemd
-config/.config/coderv2
-config/.config/configstore
-config/.config/gcloud
-config/.config/firebase
-config/.config/create-next-app-nodejs
-config/.config/nextjs-nodejs
-config/.config/github-copilot
-config/.config/gopls
-config/.config/session/dolphin_dolphin_dolphin
-config/.config/sunshine
-config/.config/dolphinrc
-config/.config/atelier-go/client.local.toml
-
 # System files
 .DS_Store
 .env
+
+# Config files and folders to ignore.
+config/dot-config/gh/hosts.yml
+config/dot-config/tmux/plugins
+config/dot-config/go
+config/dot-config/iterm2
+config/dot-config/systemd
+config/dot-config/coderv2
+config/dot-config/configstore
+config/dot-config/gcloud
+config/dot-config/firebase
+config/dot-config/create-next-app-nodejs
+config/dot-config/nextjs-nodejs
+config/dot-config/github-copilot
+config/dot-config/gopls
+config/dot-config/session/dolphin_dolphin_dolphin
+config/dot-config/sunshine
+config/dot-config/dolphinrc
+config/dot-config/atelier-go/client.local.toml
+config/dot-config/atelier/config.local
