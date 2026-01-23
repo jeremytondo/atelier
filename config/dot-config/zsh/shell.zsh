@@ -3,6 +3,10 @@ HISTFILE=~/.histfile
 HISTSIZE=32768
 SAVEHIST=32768
 
+# Load Atelier local variables
+if [[ -f "$HOME/.config/atelier/config.local" ]]; then
+  source "$HOME/.config/atelier/config.local"
+fi
 
 # PATH
 #
