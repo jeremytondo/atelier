@@ -55,11 +55,13 @@ alias gcad='git commit -a --amend'
 compress() { tar -czf "${1%/}.tar.gz" "${1%/}"; }
 alias decompress="tar -xzf"
 
-# Edit Atelier Config
-alias atc='nvim ~/.local/share/atelier/config/.config/'
+# Atelier commands 
+alias atc='nvim ~/.local/share/atelier/'
+alias ats='~/.local/share/atelier/scripts/status.sh'
+alias atp='~/.local/share/atelier/scripts/sync.sh'
 
 # Work Specific Aliases
-if [[ "$TAGS" == *"work"* ]]; then
+if [[ "$ATELIER_TAGS" == *"work"* ]]; then
   agc() {
       # Generate a unique ID for this terminal tab if not already set
       export ATELIER_CLIENT_ID="${ATELIER_CLIENT_ID:-$(uuidgen | cut -d'-' -f1)}"
