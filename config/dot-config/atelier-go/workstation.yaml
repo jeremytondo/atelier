@@ -1,6 +1,3 @@
-actions:
-  - name: "OpenCode"
-    command: "opencode"
 projects:
   - name: "Devcontainers Test"
     path: "~/.local/share/atelier/devcontainers/dev/"
@@ -10,7 +7,7 @@ projects:
       - name: "devcontainer nvim"
         command: "PATH=/home/jeremytondo/.nvm/versions/node/v25.2.1/bin:$PATH devcontainer exec --workspace-folder . nvim"
   - name: "Atelier Go"
-    path: "~/projects/atelier-go/"
+    path: "~/Projects/atelier-go/"
   - name: "Workstation Home"
     path: "~/"
     shell-default: true
