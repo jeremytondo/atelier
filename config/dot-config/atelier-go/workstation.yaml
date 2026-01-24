@@ -1,13 +1,6 @@
 projects:
-  - name: "Devcontainers Test"
-    path: "~/.local/share/atelier/devcontainers/dev/"
-    actions:
-      - name: "devcontainer shell"
-        command: "PATH=/home/jeremytondo/.nvm/versions/node/v25.2.1/bin:$PATH devcontainer exec --workspace-folder . zsh"
-      - name: "devcontainer nvim"
-        command: "PATH=/home/jeremytondo/.nvm/versions/node/v25.2.1/bin:$PATH devcontainer exec --workspace-folder . nvim"
   - name: "Atelier Go"
-    path: "~/Projects/atelier-go/"
+    path: "~/Projects/AtelierGo/atelier-go/"
   - name: "Workstation Home"
     path: "~/"
     shell-default: true
