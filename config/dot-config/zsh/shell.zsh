@@ -5,7 +5,9 @@ SAVEHIST=32768
 
 # Load Atelier local variables
 if [[ -f "$HOME/.config/atelier/config.local" ]]; then
+  set -a
   source "$HOME/.config/atelier/config.local"
+  set +a
 fi
 
 # PATH
