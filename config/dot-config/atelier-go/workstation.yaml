@@ -11,3 +11,5 @@ projects:
   - name: "Workstation Home"
     path: "~/"
     shell-default: true
+  - name: "TourneyMate Backend"
+    path: "~/Projects/TourneyMate/tourneymate-backend/"
