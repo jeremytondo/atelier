@@ -6,3 +6,6 @@ projects:
     shell-default: true
   - name: "TourneyMate Backend"
     path: "~/Projects/TourneyMate/tourneymate-backend/"
+    actions:
+      - name: "Dev Server"
+        command: "go run main.go serve --http=\"0.0.0.0:8090\""
