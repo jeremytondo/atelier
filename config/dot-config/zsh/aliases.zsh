@@ -71,4 +71,6 @@ if [[ "$ATELIER_TAGS" == *"work"* ]]; then
       # Pass the ID to the remote atelier-go command
       autossh -M 0 -q -t cloudtop -- "/usr/local/google/home/jeremytondo/.local/bin/atelier-go --client-id=$ATELIER_CLIENT_ID"
   }
+
+  alias gemini='/google/bin/releases/gemini-cli/tools/gemini'
 fi

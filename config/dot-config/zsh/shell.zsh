@@ -23,3 +23,9 @@ export PATH=$PATH:/usr/local/go/bin:$GOPATH
 
 # Keep OpenCode from changing the terminal title.
 export OPENCODE_DISABLE_TERMINAL_TITLE=true
+
+# Work specific settings
+if [[ "$ATELIER_TAGS" == *"work"* ]]; then
+  source /etc/bash_completion.d/hgd
+  export TERMINFO_DIRS="$HOME/.terminfo:/usr/share/terminfo:/lib/terminfo"
+fi
