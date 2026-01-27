@@ -45,7 +45,14 @@ return {
       copilot = { status = { enabled = false } },
       cli = {
         win = {
-          split = { width = 93 },
+          layout = "float",
+          float = {
+            width = 0.95,
+            height = 0.95,
+            border = "rounded",
+            title = "",
+          }
+          -- split = { width = 93 },
         },
       },
     },
@@ -64,4 +71,3 @@ return {
     },
   },
 }
-
