@@ -72,5 +72,8 @@ if [[ "$ATELIER_TAGS" == *"work"* ]]; then
       autossh -M 0 -q -t cloudtop -- "/usr/local/google/home/jeremytondo/.local/bin/atelier-go --client-id=$ATELIER_CLIENT_ID"
   }
 
+fi
+
+if [[ "$ATELIER_TAGS" == *"google3"* ]]; then
   alias gemini='/google/bin/releases/gemini-cli/tools/gemini'
 fi

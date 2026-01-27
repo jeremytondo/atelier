@@ -25,7 +25,7 @@ export PATH=$PATH:/usr/local/go/bin:$GOPATH
 export OPENCODE_DISABLE_TERMINAL_TITLE=true
 
 # Work specific settings
-if [[ "$ATELIER_TAGS" == *"work"* ]]; then
+if [[ "$ATELIER_TAGS" == *"google3"* ]]; then
   source /etc/bash_completion.d/hgd
   export TERMINFO_DIRS="$HOME/.terminfo:/usr/share/terminfo:/lib/terminfo"
 fi
