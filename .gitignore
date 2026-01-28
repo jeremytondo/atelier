@@ -23,3 +23,4 @@ config/dot-config/sunshine
 config/dot-config/dolphinrc
 config/dot-config/atelier-go/client.local.toml
 config/dot-config/atelier/config.local
+config/dot-config/chrome-remote-desktop
