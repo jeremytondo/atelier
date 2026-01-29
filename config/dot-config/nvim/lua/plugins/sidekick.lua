@@ -15,12 +15,21 @@ return {
           -- }
           split = { width = 93 },
         },
+        tools = {
+          gemini = require("config.utils").has_tag("google3") and {
+            cmd = {
+              "/google/bin/releases/gemini-cli/tools/gemini",
+            },
+          } or nil,
+        },
       },
     },
     keys = {
       {
         "<leader>ag",
-        function() require("sidekick.cli").toggle({ name = "gemini", focus = true }) end,
+        function()
+          require("sidekick.cli").toggle({ name = "gemini", focus = true })
+        end,
         desc = "Sidekick Toggle Gemini",
       },
     },
