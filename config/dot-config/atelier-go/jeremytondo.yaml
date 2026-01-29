@@ -3,6 +3,6 @@ actions:
   - name: "Gemini"
     command: "gemini"
 projects:
-  - name: "Home"
+  - name: "Cloudtop Home"
     path: "~/"
     shell-default: true
