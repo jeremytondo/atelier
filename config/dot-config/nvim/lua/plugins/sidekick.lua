@@ -8,8 +8,8 @@ return {
         win = {
           layout = "float",
           float = {
-            width = 0.95,
-            height = 0.95,
+            width = 1.0,
+            height = 1.0,
             border = "rounded",
             title = "",
           }
