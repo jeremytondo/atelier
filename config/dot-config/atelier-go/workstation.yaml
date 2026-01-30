@@ -7,5 +7,7 @@ projects:
   - name: "TourneyMate Backend"
     path: "~/Projects/TourneyMate/tourneymate-backend/"
     actions:
+      - name: "Claude Code"
+        command: "claude"
       - name: "Dev Server"
         command: "go run main.go serve --http=\"0.0.0.0:8090\""
