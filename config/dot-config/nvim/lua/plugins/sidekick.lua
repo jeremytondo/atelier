@@ -6,14 +6,14 @@ return {
       copilot = { status = { enabled = false } },
       cli = {
         win = {
-          layout = "float",
-          float = {
-            width = 1.0,
-            height = 1.0,
-            border = "rounded",
-            title = "",
-          }
-          -- split = { width = 93 },
+          -- layout = "float",
+          -- float = {
+          --   width = 1.0,
+          --   height = 1.0,
+          --   border = "rounded",
+          --   title = "",
+          -- }
+          split = { width = 93 },
         },
       },
     },
