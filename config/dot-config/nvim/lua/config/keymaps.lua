@@ -3,3 +3,4 @@
 -- Add any additional keymaps here
 
 vim.keymap.set('t', '<C-;>', [[<C-\><C-n>]], { desc = "Exit terminal mode" })
+vim.keymap.set('t', '<S-CR>', '<Esc>[13;2u', { noremap = true })
