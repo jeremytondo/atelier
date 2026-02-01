@@ -21,8 +21,9 @@ export PATH=$PATH:/usr/local/go/bin:$GOPATH
 
 # RAMDOM SETTINGS
 
-# Keep OpenCode from changing the terminal title.
+# Keep various TUIs from changing the terminal title.
 export OPENCODE_DISABLE_TERMINAL_TITLE=true
+export CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1
 
 # Work specific settings
 if [[ "$ATELIER_TAGS" == *"google3"* ]]; then
