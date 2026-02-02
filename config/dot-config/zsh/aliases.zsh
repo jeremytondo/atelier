@@ -31,8 +31,8 @@ alias agk='atelier-go sessions kill'
 
 # Atelier Go Remote Workstation Commands
 # alias agw='autossh -M 0 -q -t ag -- /home/jeremytondo/.local/bin/atelier-go'
-alias agws='autossh -M 0 -q -t ag -- /home/jeremytondo/.local/bin/atelier-go sessions list'
-alias agwk='autossh -M 0 -q -t ag -- /home/jeremytondo/.local/bin/atelier-go sessions kill'
+alias agws='autossh -M 0 -q -t workstation -- /home/jeremytondo/.local/bin/atelier-go sessions list'
+alias agwk='autossh -M 0 -q -t workstation -- /home/jeremytondo/.local/bin/atelier-go sessions kill'
 
 agw() {
     # Generate a unique ID for this terminal tab if not already set
