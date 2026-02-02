@@ -10,4 +10,4 @@ projects:
       - name: "Claude Code"
         command: "claude"
       - name: "Dev Server"
-        command: "go run main.go serve --http=\"0.0.0.0:8090\""
+        command: "make run"
