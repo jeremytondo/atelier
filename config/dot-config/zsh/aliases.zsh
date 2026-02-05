@@ -24,24 +24,6 @@ alias lzg='lazygit'
 alias lzd='lazydocker'
 alias dc='devcontainer'
 
-# Atelier Go
-alias ag='atelier-go'
-alias ags='atelier-go sessions list'
-alias agk='atelier-go sessions kill'
-
-# Atelier Go Remote Workstation Commands
-# alias agw='autossh -M 0 -q -t ag -- /home/jeremytondo/.local/bin/atelier-go'
-alias agws='autossh -M 0 -q -t workstation -- /home/jeremytondo/.local/bin/atelier-go sessions list'
-alias agwk='autossh -M 0 -q -t workstation -- /home/jeremytondo/.local/bin/atelier-go sessions kill'
-
-agw() {
-    # Generate a unique ID for this terminal tab if not already set
-    export ATELIER_CLIENT_ID="${ATELIER_CLIENT_ID:-$(uuidgen | cut -d'-' -f1)}"
-    
-    # Pass the ID to the remote atelier-go command
-    autossh -M 0 -q -t workstation -- "/home/jeremytondo/.local/bin/atelier-go --client-id=$ATELIER_CLIENT_ID"
-}
-
 if [[ "$(uname -s)" == "Linux" ]]; then
   alias bat='batcat'
 fi
@@ -56,22 +38,25 @@ compress() { tar -czf "${1%/}.tar.gz" "${1%/}"; }
 alias decompress="tar -xzf"
 
 # Atelier commands 
-atc() {
-  (cd ~/.local/share/atelier/ && nvim)
-}
+alias atc='(cd ~/.local/share/atelier/ && nvim)'
 alias ats='~/.local/share/atelier/scripts/status.sh'
 alias atp='~/.local/share/atelier/scripts/sync.sh'
 
+# Atelier Go
+alias ag='atelier-go'
+alias ags='atelier-go sessions list'
+alias agk='atelier-go sessions kill'
+
+# Atelier Go Remote Workstation Commands
+export ATELIER_CLIENT_ID="${ATELIER_CLIENT_ID:-$(hostname -s)-$(uuidgen | cut -d'-' -f1)}"
+
+alias agw='autossh -M 0 -q -t workstation -- "/home/jeremytondo/.local/bin/atelier-go --client-id=$ATELIER_CLIENT_ID"'
+alias agws='autossh -M 0 -q -t workstation -- /home/jeremytondo/.local/bin/atelier-go sessions list'
+alias agwk='autossh -M 0 -q -t workstation -- /home/jeremytondo/.local/bin/atelier-go sessions kill'
+
 # Work Specific Aliases
 if [[ "$ATELIER_TAGS" == *"work"* ]]; then
-  agc() {
-      # Generate a unique ID for this terminal tab if not already set
-      export ATELIER_CLIENT_ID="${ATELIER_CLIENT_ID:-$(uuidgen | cut -d'-' -f1)}"
-      
-      # Pass the ID to the remote atelier-go command
-      autossh -M 0 -q -t cloudtop -- "/usr/local/google/home/jeremytondo/.local/bin/atelier-go --client-id=$ATELIER_CLIENT_ID"
-  }
-
+  alias agw='autossh -M 0 -q -t cloudtop -- "/usr/local/google/home/jeremytondo/.local/bin/atelier-go --client-id=$ATELIER_CLIENT_ID"'
 fi
 
 if [[ "$ATELIER_TAGS" == *"google3"* ]]; then
