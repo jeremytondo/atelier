@@ -1,6 +1,7 @@
 {
   "attribution": {
-    "commit": ""
+    "commit": "",
+    "pullRequest": ""
   },
   "statusLine": {
     "type": "command",
@@ -8,5 +9,6 @@
   },
   "enabledPlugins": {
     "gopls-lsp@claude-plugins-official": true
-  }
+  },
+  "model": "haiku"
 }
