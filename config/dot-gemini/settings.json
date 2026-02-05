@@ -9,6 +9,7 @@
   },
   "ui": {
     "hideBanner": true,
-    "hideTips": true
+    "hideTips": true,
+    "useBackgroundColor": false
   }
 }
