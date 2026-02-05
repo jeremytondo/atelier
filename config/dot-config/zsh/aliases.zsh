@@ -48,7 +48,7 @@ alias ags='atelier-go sessions list'
 alias agk='atelier-go sessions kill'
 
 # Atelier Go Remote Workstation Commands
-export ATELIER_CLIENT_ID="${ATELIER_CLIENT_ID:-$(hostname -s)-$(uuidgen | cut -d'-' -f1)}"
+export ATELIER_CLIENT_ID="${ATELIER_CLIENT_ID:-$(uname -n | cut -d'.' -f1)-$(uuidgen | cut -d'-' -f1)}"
 
 alias agw='autossh -M 0 -q -t workstation -- "/home/jeremytondo/.local/bin/atelier-go --client-id=$ATELIER_CLIENT_ID"'
 alias agws='autossh -M 0 -q -t workstation -- /home/jeremytondo/.local/bin/atelier-go sessions list'
