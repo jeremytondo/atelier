@@ -56,7 +56,7 @@ alias agwk='autossh -M 0 -q -t workstation -- /home/jeremytondo/.local/bin/ateli
 
 # Work Specific Aliases
 if [[ "$ATELIER_TAGS" == *"work"* ]]; then
-  alias agw='autossh -M 0 -q -t cloudtop -- "/usr/local/google/home/jeremytondo/.local/bin/atelier-go --client-id=$ATELIER_CLIENT_ID"'
+  alias agc='autossh -M 0 -q -t cloudtop -- "/usr/local/google/home/jeremytondo/.local/bin/atelier-go --client-id=$ATELIER_CLIENT_ID"'
 fi
 
 if [[ "$ATELIER_TAGS" == *"google3"* ]]; then
