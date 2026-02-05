@@ -1,4 +1,0 @@
-# Work Laptop Config
-actions:
-  - name: "Gemini"
-    command: "gemini"
