@@ -18,6 +18,7 @@ fi
 # Temporarily set as this will work in all cases I think once I standardize
 # the install methods across platforms.
 source <(fzf --zsh)
+bindkey '^[[Z' autosuggest-accept  # shift + tab  | autosuggest
 
 # Set default bat color theme
 # TODO: Switch up this theme to Catppuccion.
@@ -39,7 +40,6 @@ export NVM_DIR="$HOME/.nvm"
 # Set default editor
 export EDITOR="nvim"
 export VISUAL="$EDITOR"
-
 
 # Zoxide init must be at the end of this file. 
 if command -v zoxide &> /dev/null; then
