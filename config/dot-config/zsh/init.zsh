@@ -7,14 +7,6 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
-# Set up fzf key bindings and fuzzy completion
-# if command -v fzf &> /dev/null && [[ "$(uname -s)" == "Linux" ]]; then
-#   source /usr/share/doc/fzf/examples/completion.zsh
-#   source /usr/share/doc/fzf/examples/key-bindings.zsh
-# else
-#   source <(fzf --zsh)
-# fi
-
 # Temporarily set as this will work in all cases I think once I standardize
 # the install methods across platforms.
 source <(fzf --zsh)
@@ -30,12 +22,15 @@ if [ -f $HOME/.local/share/google-cloud-sdk/path.zsh.inc ]; then . $HOME/.local/
 # Enables shell command completion for gcloud.
 if [ -f '$HOME/.local/share/google-cloud-sdk/completion.zsh.inc' ]; then . '$HOME/.local/share/google-cloud-sdk/completion.zsh.inc'; fi
 
+# Mise Setup
+eval "$(~/.local/bin/mise activate zsh)"
+
 # NVM (Node Version Manager)
-export NVM_DIR="$HOME/.nvm"
-# Load nvm script if it exists
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-# Load nvm bash_completion (optional but recommended)
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+# export NVM_DIR="$HOME/.nvm"
+# # Load nvm script if it exists
+# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+# # Load nvm bash_completion (optional but recommended)
+# [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
 # Set default editor
 export EDITOR="nvim"
