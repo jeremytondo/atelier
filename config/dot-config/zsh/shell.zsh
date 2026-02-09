@@ -12,9 +12,6 @@ fi
 
 # PATH
 
-# Support for mise shims
-export PATH="$HOME/.local/share/mise/shims:$PATH"
-
 # Add user private bins to path. 
 export PATH=$PATH:$HOME/.bin:$HOME/.local/bin:
 

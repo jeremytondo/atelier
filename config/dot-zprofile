@@ -1,0 +1,4 @@
+# Set up Mise for non-interactive shells
+if command -v mise &> /dev/null; then
+  eval "$(mise activate zsh --shims)"
+fi

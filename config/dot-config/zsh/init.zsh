@@ -23,7 +23,9 @@ if [ -f $HOME/.local/share/google-cloud-sdk/path.zsh.inc ]; then . $HOME/.local/
 if [ -f '$HOME/.local/share/google-cloud-sdk/completion.zsh.inc' ]; then . '$HOME/.local/share/google-cloud-sdk/completion.zsh.inc'; fi
 
 # Mise Setup
-eval "$(~/.local/bin/mise activate zsh)"
+if command -v mise &> /dev/null; then
+  eval "$(~/.local/bin/mise activate zsh)"
+fi
 
 # NVM (Node Version Manager)
 # export NVM_DIR="$HOME/.nvm"
