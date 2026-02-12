@@ -2,3 +2,6 @@
 go = "latest"
 node = "latest"
 "npm:@openai/codex" = "latest"
+
+[settings]
+experimental = true
