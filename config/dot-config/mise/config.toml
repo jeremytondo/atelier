@@ -1,4 +1,5 @@
 [tools]
+gemini = "latest"
 go = "latest"
 node = "latest"
 "npm:@openai/codex" = "latest"
