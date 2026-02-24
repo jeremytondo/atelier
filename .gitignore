@@ -25,3 +25,5 @@ config/dot-config/atelier-go/client.local.toml
 config/dot-config/atelier/config.local
 config/dot-config/chrome-remote-desktop
 config/dot-config/atelier-go/config.local.yaml
+config/dot-config/litecli/history
+config/dot-config/litecli/log
