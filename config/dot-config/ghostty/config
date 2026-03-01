@@ -3,11 +3,17 @@ macos-titlebar-style = tabs
 
 window-title-font-family = Inter Nerd Font 
 
-keybind = ctrl+cmd+m=toggle_split_zoom
-keybind = global:cmd+option+grave_accent=toggle_quick_terminal
-
 shell-integration-features = sudo,ssh-terminfo
 
 clipboard-read = allow
 clipboard-write = allow
 macos-option-as-alt = true
+
+keybind = ctrl+cmd+m=toggle_split_zoom
+keybind = global:cmd+option+grave_accent=toggle_quick_terminal
+
+keybind = opt+super+h=goto_split:left
+keybind = opt+super+j=goto_split:bottom
+keybind = opt+super+k=goto_split:top
+keybind = opt+super+l=goto_split:right
+
