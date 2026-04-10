@@ -4,7 +4,9 @@ source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 # Initialize Homebrew on MacOS
 if [[ "$(uname -s)" == "Darwin" ]]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
+  if [[ -x /opt/homebrew/bin/brew ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+  fi
 fi
 
 # Temporarily set as this will work in all cases I think once I standardize
@@ -24,7 +26,7 @@ if [ -f '$HOME/.local/share/google-cloud-sdk/completion.zsh.inc' ]; then . '$HOM
 
 # Mise Setup
 if command -v mise &> /dev/null; then
-  eval "$(~/.local/bin/mise activate zsh)"
+  eval "$($(command -v mise) activate zsh)"
 fi
 
 # NVM (Node Version Manager)

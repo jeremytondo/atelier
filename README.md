@@ -23,7 +23,7 @@ This repository serves three main purposes:
 ### 1. Consistent Cross-Platform Setup
 Whether running on a local MacBook or a remote Arch Linux VM, the environment looks and behaves exactly the same. The installation scripts handle the nuances of package management:
 *   **Arch Linux**: Uses `yay` for system and AUR packages.
-*   **macOS**: Uses Homebrew.
+*   **macOS**: Uses Homebrew and installs it automatically if it is missing.
 
 ### 2. Dotfiles Management
 The `config` directory contains the configuration files for all supported applications (Neovim, Zsh, NVM, etc.). GNU Stow is used to create and manage symlinks, ensuring these files are placed correctly in the home directory while keeping the repository clean.
