@@ -40,6 +40,11 @@ fi
 export EDITOR="nvim"
 export VISUAL="$EDITOR"
 
+# Work Specific
+if [[ "$ATELIER_TAGS" == *"work"* ]]; then
+  source /etc/bash_completion.d/jjd
+fi
+
 # Zoxide init must be at the end of this file. 
 if command -v zoxide &> /dev/null; then
   eval "$(zoxide init zsh)"
