@@ -27,3 +27,13 @@ config/dot-config/chrome-remote-desktop
 config/dot-config/atelier-go/config.local.yaml
 config/dot-config/litecli/history
 config/dot-config/litecli/log
+config/dot-config/dconf
+config/dot-config/evolution
+config/dot-config/goobuntu-indicator
+config/dot-config/gtk-3.0
+config/dot-config/ibus
+config/dot-config/pulse
+config/dot-config/lri-notifications-count-lock
+config/dot-config/user-dirs.dirs
+config/dot-config/user-dirs.locale
+config/dot-config/.gsd-keyboard.settings-ported
