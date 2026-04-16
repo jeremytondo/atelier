@@ -26,7 +26,7 @@ if [ -f '$HOME/.local/share/google-cloud-sdk/completion.zsh.inc' ]; then . '$HOM
 
 # Mise Setup
 if command -v mise &> /dev/null; then
-  eval "$($(command -v mise) activate zsh)"
+  eval "$(mise activate zsh)"
 fi
 
 # NVM (Node Version Manager)
