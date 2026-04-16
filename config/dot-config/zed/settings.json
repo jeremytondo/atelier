@@ -1,0 +1,49 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  "when_closing_with_no_tabs": "keep_window_open",
+  "use_system_path_prompts": true,
+  "icon_theme": {
+    "mode": "light",
+    "light": "Soft Charmed Icons",
+    "dark": "Zed (Default)",
+  },
+  "telemetry": {
+    "diagnostics": true,
+    "metrics": false,
+  },
+  "session": {
+    "trust_all_worktrees": true,
+  },
+  "vim_mode": true,
+  "base_keymap": "VSCode",
+  "ui_font_size": 16,
+  "buffer_font_size": 15,
+  "theme": {
+    "mode": "dark",
+    "light": "One Light",
+    "dark": "One Dark Pro",
+  },
+  "theme_overrides": {
+    "One Dark Pro": {
+      "editor.background": "#18181b",
+      "panel.background": "#18181b",
+      "status_bar.background": "#18181b",
+      "title_bar.background": "#18181b",
+      "toolbar.background": "#18181b",
+      "tab_bar.background": "#18181b",
+      "tab.active_background": "#18181b",
+      "editor.line_number": "#3f3f46",
+      "editor.active_line.background": "#27272a",
+    },
+  },
+  "tab_bar": {
+    "show": false,
+  },
+}
