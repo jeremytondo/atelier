@@ -19,7 +19,8 @@ export PATH=$PATH:$HOME/.bin:$HOME/.local/bin:
 export GOPATH=$HOME/.local/share/go
 export PATH=$PATH:/usr/local/go/bin:$GOPATH
 
-# RAMDOM SETTINGS
+# Terminal color settings
+export COLORTERM="truecolor"
 
 # Keep various TUIs from changing the terminal title.
 export OPENCODE_DISABLE_TERMINAL_TITLE=true
