@@ -62,5 +62,5 @@ if [[ "$ATELIER_TAGS" == *"work"* ]]; then
 fi
 
 if [[ "$ATELIER_TAGS" == *"google3"* ]]; then
-  alias gemini='/google/bin/releases/gemini-cli/tools/gemini'
+  alias gemini='/google/bin/releases/gemini-cli/tools/gemini --gfg'
 fi
