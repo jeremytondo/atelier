@@ -1,0 +1,17 @@
+# Make mise shims visible to non-interactive SSH commands only.
+# Login shells are handled by ~/.zprofile.
+# Interactive shells are handled by ~/.zshrc / normal shell init.
+if [[ $- != *l* && $- != *i* && ( -n "$SSH_CONNECTION" || -n "$SSH_CLIENT" ) ]]; then
+  export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
+fi
+
+# if [[ -n "$SSH_CONNECTION" && $- != *i* ]]; then
+#   mkdir -p "$HOME/.codex"
+#   {
+#     print -r -- "----- $(date -Is) -----"
+#     print -r -- "flags=$-"
+#     print -r -- "ssh=$SSH_CONNECTION"
+#     print -r -- "path=$PATH"
+#     print -r -- "zsh_exec=${ZSH_EXECUTION_STRING:-}"
+#   } >> "$HOME/.codex/ssh-zshenv-debug.log"
+# fi
