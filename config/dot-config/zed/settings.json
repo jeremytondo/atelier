@@ -7,6 +7,68 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "project_panel": {
+    "dock": "right",
+  },
+  "outline_panel": {
+    "dock": "right",
+  },
+  "collaboration_panel": {
+    "dock": "right",
+  },
+  "agent": {
+    "dock": "left",
+    "favorite_models": [],
+    "model_parameters": [],
+  },
+  "git_panel": {
+    "dock": "right",
+  },
+  "ssh_connections": [
+    {
+      "host": "homeassistant-old",
+      "args": [],
+      "projects": [
+        {
+          "paths": ["/root"],
+        },
+      ],
+    },
+    {
+      "host": "homeassistant",
+      "args": [],
+      "projects": [
+        {
+          "paths": ["/root"],
+        },
+      ],
+    },
+    {
+      "host": "workstation",
+      "args": [],
+      "projects": [
+        {
+          "paths": ["/home/jeremytondo"],
+        },
+        {
+          "paths": ["/home/jeremytondo/Projects"],
+        },
+        {
+          "paths": ["/home/jeremytondo/Projects/Blazerr/./"],
+        },
+        {
+          "paths": [
+            "/home/jeremytondo/Projects/Blazerr/blazerr-experimental/./",
+          ],
+        },
+      ],
+    },
+  ],
+  "agent_servers": {
+    "codex-acp": {
+      "type": "registry",
+    },
+  },
   "when_closing_with_no_tabs": "keep_window_open",
   "use_system_path_prompts": true,
   "icon_theme": {
@@ -24,7 +86,7 @@
   "vim_mode": true,
   "base_keymap": "VSCode",
   "ui_font_size": 16,
-  "buffer_font_size": 15,
+  "buffer_font_size": 14,
   "theme": {
     "mode": "dark",
     "light": "One Light",
@@ -34,16 +96,25 @@
     "One Dark Pro": {
       "editor.background": "#18181b",
       "panel.background": "#18181b",
+      "terminal.background": "#18181b",
       "status_bar.background": "#18181b",
       "title_bar.background": "#18181b",
       "toolbar.background": "#18181b",
       "tab_bar.background": "#18181b",
       "tab.active_background": "#18181b",
+      "editor.gutter.background": "#18181b",
       "editor.line_number": "#3f3f46",
       "editor.active_line.background": "#27272a",
+      "border.variant": "#18181b",
+      "border": "#18181b",
+      "pane.focused_border": "#27272a",
     },
   },
   "tab_bar": {
     "show": false,
+  },
+  "terminal": {
+    "font_family": "JetBrains Mono",
+    "font_size": 14,
   },
 }
