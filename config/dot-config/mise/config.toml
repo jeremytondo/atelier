@@ -1,8 +1,10 @@
 [tools]
 gemini = "latest"
 go = "latest"
+lua-language-server = "latest"
 node = "latest"
 "npm:@openai/codex" = "latest"
+"npm:bash-language-server" = "latest"
 
 [settings]
 experimental = true
