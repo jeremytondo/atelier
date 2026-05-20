@@ -63,4 +63,5 @@ fi
 
 if [[ "$ATELIER_TAGS" == *"google3"* ]]; then
   alias gemini='/google/bin/releases/gemini-cli/tools/gemini --gfg'
+  alias jetski='/google/bin/releases/jetski-devs/tools/cli'
 fi
