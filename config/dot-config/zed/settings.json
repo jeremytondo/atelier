@@ -30,39 +30,54 @@
       "args": [],
       "projects": [
         {
-          "paths": ["/root"],
-        },
-      ],
+          "paths": [
+            "/root"
+          ]
+        }
+      ]
     },
     {
       "host": "homeassistant",
       "args": [],
       "projects": [
         {
-          "paths": ["/root"],
-        },
-      ],
+          "paths": [
+            "/root"
+          ]
+        }
+      ]
     },
     {
       "host": "workstation",
       "args": [],
       "projects": [
         {
-          "paths": ["/home/jeremytondo"],
-        },
-        {
-          "paths": ["/home/jeremytondo/Projects"],
-        },
-        {
-          "paths": ["/home/jeremytondo/Projects/Blazerr/./"],
+          "paths": [
+            "/home/jeremytondo"
+          ]
         },
         {
           "paths": [
-            "/home/jeremytondo/Projects/Blazerr/blazerr-experimental/./",
-          ],
+            "/home/jeremytondo/.agents/skills"
+          ]
         },
-      ],
-    },
+        {
+          "paths": [
+            "/home/jeremytondo/Projects"
+          ]
+        },
+        {
+          "paths": [
+            "/home/jeremytondo/Projects/Blazerr/./"
+          ]
+        },
+        {
+          "paths": [
+            "/home/jeremytondo/Projects/Blazerr/blazerr-experimental/./"
+          ]
+        }
+      ]
+    }
   ],
   "agent_servers": {
     "codex-acp": {
@@ -114,7 +129,8 @@
     "show": false,
   },
   "terminal": {
-    "font_family": "JetBrains Mono",
+    "font_family": "JetBrainsMono Nerd Font",
+    "font_weight": 300,
     "font_size": 14,
   },
 }
