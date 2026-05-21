@@ -5,24 +5,36 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
--- Basic editor settings
-vim.opt.number = true             -- Show absolute line numbers
-vim.opt.relativenumber = true     -- Show relative line numbers
-vim.opt.signcolumn = "no"         -- Hide sign column
-vim.opt.tabstop = 2               -- Number of spaces a <Tab> counts for
-vim.opt.shiftwidth = 2            -- Number of spaces to use for each step of indent
-vim.opt.expandtab = true          -- Use spaces instead of tabs
-vim.opt.smartindent = true        -- Smarter auto-indentation
-vim.opt.clipboard = "unnamedplus" -- Sync clipboard with your OS
+-- basic editor settings
+vim.opt.number = true         -- show absolute line numbers
+vim.opt.relativenumber = true -- show relative line numbers
+vim.opt.signcolumn = "no"     -- hide sign column
+vim.opt.tabstop = 2           -- number of spaces a <tab> counts for
+vim.opt.shiftwidth = 2        -- number of spaces to use for each step of indent
+vim.opt.expandtab = true      -- use spaces instead of tabs
+vim.opt.smartindent = true    -- smarter auto-indentation
+
+-- Clipboard setup
+vim.opt.clipboard = "unnamedplus" -- Route yanks/deletes directly to system registers
+vim.g.clipboard = "osc52"         -- Stream register text via terminal ANSI (works over SSH)
 
 -- Clean command-line layout options
-vim.opt.cmdheight = 0  -- Hide command line when not typing a command
-vim.opt.laststatus = 3 -- Single global statusline spanning all windows
+vim.opt.wildoptions = "pum"            -- Display completion matches in a pop-up menu (pum)
+vim.opt.wildmode = "longest:full,full" -- First Tab completes longest match, next Tab cycles choices
+vim.opt.cmdheight = 0                  -- Hide command line when not typing a command
 
 -- Netrw (File Explorer) settings
 vim.g.netrw_liststyle = 3 -- Set Netrw to tree view by default
 vim.g.netrw_banner = 0    -- Hide the bulky top banner text
 vim.g.netrw_winsize = 25  -- Sidebar window width percentage for :Lexplore
+
+-- ==============================================================================
+-- PACKAGE MANAGEMENT (vim.pack)
+-- ==============================================================================
+-- Automatically clone and manage plugins using the native git interface
+vim.pack.add({ 'https://github.com/ibhagwan/fzf-lua' })
+vim.pack.add({ 'https://github.com/stevearc/conform.nvim' })
+vim.pack.add({ 'https://github.com/catppuccin/nvim' })
 
 -- ==============================================================================
 -- UI & OPTIONS
@@ -32,6 +44,18 @@ require('vim._core.ui2').enable({})
 
 -- Turn on Neovim 0.12's built-in asynchronous completion engine
 vim.opt.autocomplete = true
+
+-- Theme
+require("catppuccin").setup({
+  flavour = "mocha",             -- Target mocha palette options
+  transparent_background = true, -- Clear main window backgrounds
+  float = {
+    transparent = true,          -- HERE: Natively strips backgrounds from floating windows and borders!
+  },
+})
+
+-- Load the colorscheme natively
+vim.cmd.colorscheme("catppuccin")
 
 -- ==============================================================================
 -- TRANSPARENCY & HIGHLIGHTS
@@ -65,6 +89,7 @@ function _G.MyCustomStatusLine()
 end
 
 vim.opt.statusline = "%!v:lua.MyCustomStatusLine()"
+vim.opt.laststatus = 3 -- Single global statusline spanning all windows
 
 -- ==============================================================================
 -- KEYMAPS
@@ -89,6 +114,9 @@ vim.keymap.set("n", "<leader><leader>", "<cmd>FzfLua files<CR>", { desc = "Fuzzy
 vim.keymap.set("n", "<leader>,", "<cmd>FzfLua buffers<CR>", { desc = "Fuzzy find buffers" })
 vim.keymap.set("n", "<leader>:", "<cmd>FzfLua commands<CR>", { desc = "Fuzzy find Neovim commands" })
 
+-- Show diagnostic/LSP messages in a floating window
+vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, { desc = "Line diagnostics" })
+
 -- ==============================================================================
 -- Language Servers (LSP)
 -- ==============================================================================
@@ -96,12 +124,6 @@ vim.keymap.set("n", "<leader>:", "<cmd>FzfLua commands<CR>", { desc = "Fuzzy fin
 -- LSP list (with file names) - https://github.com/neovim/nvim-lspconfig/tree/master/lsp
 vim.lsp.enable({ "bashls", "lua_ls" })
 
--- ==============================================================================
--- PACKAGE MANAGEMENT (vim.pack)
--- ==============================================================================
--- Automatically clone and manage plugins using the native git interface
-vim.pack.add({ 'https://github.com/ibhagwan/fzf-lua' })
-vim.pack.add({ 'https://github.com/stevearc/conform.nvim' })
 
 -- ==============================================================================
 -- Conform.nvim
