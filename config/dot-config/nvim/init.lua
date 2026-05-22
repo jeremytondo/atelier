@@ -132,14 +132,45 @@ opt.redrawtime = 10000
 opt.maxmempattern = 20000
 
 -- Clipboard setup
-opt.clipboard = "unnamedplus" -- Route yanks/deletes directly to system registers
-vim.g.clipboard = "osc52"     -- Stream register text via terminal ANSI (works over SSH)
+local osc52 = require("vim.ui.clipboard.osc52")
+
+local function paste()
+  return { vim.split(vim.fn.getreg('"'), "\n"), vim.fn.getregtype('"') }
+end
+
+opt.clipboard = "unnamedplus"
+
+vim.g.clipboard = {
+  name = "osc52",
+  copy = {
+    ["+"] = osc52.copy("+"),
+    ["*"] = osc52.copy("*"),
+  },
+  paste = {
+    ["+"] = paste,
+    ["*"] = paste,
+  },
+}
 
 -- Create undo directory if it doesn't exist
 local undodir = vim.fn.expand("~/.vim/undodir")
 if vim.fn.isdirectory(undodir) == 0 then
   vim.fn.mkdir(undodir, "p")
 end
+
+-- ==============================================================================
+-- BUFFER NAVIGATION
+-- ==============================================================================
+local map = vim.keymap.set
+local opts = { noremap = true, silent = true }
+
+-- auto close pairs
+map("i", "`", "``<left>")
+map("i", '"', '""<left>')
+map("i", "(", "()<left>")
+map("i", "[", "[]<left>")
+map("i", "{", "{}<left>")
+map("i", "<", "<><left>")
 
 -- ==============================================================================
 -- KEYMAPS
