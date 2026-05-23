@@ -232,7 +232,6 @@ vim.lsp.enable({ "bashls", "lua_ls" })
 -- Automatically clone and manage plugins using the native git interface
 vim.pack.add({ 'https://github.com/stevearc/conform.nvim' })
 vim.pack.add({ 'https://github.com/catppuccin/nvim' })
-vim.pack.add { { src = "https://github.com/folke/snacks.nvim", name = "snacks.nvim" } }
 
 vim.cmd.packadd("nvim.difftool")
 
@@ -250,32 +249,6 @@ require("catppuccin").setup({
 -- Load the colorscheme natively
 vim.cmd.colorscheme("catppuccin")
 
--- ==============================================================================
--- Snacks.nvim
--- ==============================================================================
-require("snacks").setup({
-  -- Placing 'explorer' at the root level enables it and automatically replaces netrw
-  explorer = {
-    enabled = true,
-    replace_netrw = true, -- Explicitly stated for clarity, though true by default
-  },
-
-  picker = {
-    enabled = true,
-  },
-
-  input = {
-    enabled = true,
-  },
-
-  lazygit = {
-    enabled = true,
-  }
-})
-
-vim.keymap.set("n", "<leader><leader>", function() Snacks.picker.files() end, { desc = "Find Files" })
-vim.keymap.set("n", "<leader>e", function() Snacks.explorer() end, { desc = "Toggle Netrw Sidebar" })
-vim.keymap.set("n", "<leader>gg", function() Snacks.lazygit() end, { desc = "LazyGit" })
 
 -- ==============================================================================
 -- Conform.nvim

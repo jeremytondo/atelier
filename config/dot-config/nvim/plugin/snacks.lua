@@ -1,0 +1,34 @@
+-- ==============================================================================
+-- Snacks.nvim
+-- ==============================================================================
+-- Add plugin
+vim.pack.add({ "https://github.com/folke/snacks.nvim" })
+
+local Snacks = require("snacks")
+
+-- Plugin config
+Snacks.setup({
+  -- Placing 'explorer' at the root level enables it and automatically replaces netrw
+  explorer = {
+    enabled = true,
+    replace_netrw = true, -- Explicitly stated for clarity, though true by default
+  },
+
+  picker = {
+    enabled = true,
+  },
+
+  input = {
+    enabled = true,
+  },
+
+  lazygit = {
+    enabled = true,
+  }
+})
+
+-- Keymaps
+vim.keymap.set("n", "<leader><leader>", function() Snacks.picker.smart() end, { desc = "Smart Find Files" })
+vim.keymap.set("n", "<leader>,", function() Snacks.picker.buffers() end, { desc = "Buffers" })
+vim.keymap.set("n", "<leader>e", function() Snacks.explorer() end, { desc = "Toggle Netrw Sidebar" })
+vim.keymap.set("n", "<leader>gg", function() Snacks.lazygit() end, { desc = "LazyGit" })
