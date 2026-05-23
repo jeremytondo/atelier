@@ -188,18 +188,6 @@ vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Go to right window" })
 vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, { desc = "Line diagnostics" })
 
 -- ==============================================================================
--- STATUSLINE
--- ==============================================================================
-function _G.MyCustomStatusLine()
-  -- %f = relative path to the file, %m = modified indicator, %r = read-only indicator
-  -- %= pushes everything after it to the far right, keeping it clear of commands
-  return " %f %m%r%="
-end
-
-vim.opt.statusline = "%!v:lua.MyCustomStatusLine()"
-vim.opt.laststatus = 3 -- Single global statusline spanning all windows
-
--- ==============================================================================
 -- Language Servers (LSP)
 -- ==============================================================================
 -- LSP list - https://microsoft.github.io/language-server-protocol/implementors/servers/
@@ -227,46 +215,13 @@ vim.lsp.config("lua_ls", {
 vim.lsp.enable({ "bashls", "lua_ls" })
 
 -- ==============================================================================
--- PACKAGE MANAGEMENT (vim.pack)
+-- STATUSLINE
 -- ==============================================================================
--- Automatically clone and manage plugins using the native git interface
-vim.pack.add({ 'https://github.com/stevearc/conform.nvim' })
-vim.pack.add({ 'https://github.com/catppuccin/nvim' })
+function _G.MyCustomStatusLine()
+  -- %f = relative path to the file, %m = modified indicator, %r = read-only indicator
+  -- %= pushes everything after it to the far right, keeping it clear of commands
+  return " %f %m%r%="
+end
 
-vim.cmd.packadd("nvim.difftool")
-
--- ==============================================================================
--- THEME
--- ==============================================================================
-require("catppuccin").setup({
-  flavour = "mocha",             -- Target mocha palette options
-  transparent_background = true, -- Clear main window backgrounds
-  float = {
-    transparent = true,          -- HERE: Natively strips backgrounds from floating windows and borders!
-  },
-})
-
--- Load the colorscheme natively
-vim.cmd.colorscheme("catppuccin")
-
-
--- ==============================================================================
--- Conform.nvim
--- ==============================================================================
-require("conform").setup({
-  -- Map specific standalone CLI utilities to your language filetypes
-  formatters_by_ft = {
-    bash = { "shfmt" },
-    sh = { "shfmt" },
-
-    -- We leave out Lua here because lua_ls natively handles formatting.
-    -- Conform will see that Lua is empty and drop down to the lsp_format fallback!
-
-  },
-
-  -- Configure the format-on-save trigger
-  format_on_save = {
-    timeout_ms = 500,        -- Don't stall file-saves for more than half a second
-    lsp_format = "fallback", -- CRITICAL: Use pure native LSP formatting if no CLI tool is mapped above
-  },
-})
+vim.opt.statusline = "%!v:lua.MyCustomStatusLine()"
+vim.opt.laststatus = 3 -- Single global statusline spanning all windows
