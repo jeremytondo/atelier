@@ -52,6 +52,7 @@ opt.ruler = false         -- Disable the default ruler
 opt.virtualedit = "block" -- Allow cursor to move where there is no text in visual block mode
 opt.winminwidth = 5       -- Minimum window width
 opt.winborder = "rounded" -- Floating window border
+opt.laststatus = 3        -- Single global statusline spanning all windows
 
 -- File handling
 opt.backup = false                            -- Don't create backup files
@@ -190,9 +191,6 @@ vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, { desc = "Line diagn
 -- ==============================================================================
 -- Language Servers (LSP)
 -- ==============================================================================
--- LSP list - https://microsoft.github.io/language-server-protocol/implementors/servers/
--- LSP list (with file names) - https://github.com/neovim/nvim-lspconfig/tree/master/lsp
-
 vim.pack.add({ 'https://github.com/neovim/nvim-lspconfig' })
 
 vim.lsp.config("lua_ls", {
@@ -213,15 +211,3 @@ vim.lsp.config("lua_ls", {
 })
 
 vim.lsp.enable({ "bashls", "lua_ls" })
-
--- ==============================================================================
--- STATUSLINE
--- ==============================================================================
-function _G.MyCustomStatusLine()
-  -- %f = relative path to the file, %m = modified indicator, %r = read-only indicator
-  -- %= pushes everything after it to the far right, keeping it clear of commands
-  return " %f %m%r%="
-end
-
-vim.opt.statusline = "%!v:lua.MyCustomStatusLine()"
-vim.opt.laststatus = 3 -- Single global statusline spanning all windows
