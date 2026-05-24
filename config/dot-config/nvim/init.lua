@@ -160,6 +160,10 @@ if vim.fn.isdirectory(undodir) == 0 then
   vim.fn.mkdir(undodir, "p")
 end
 
+-- Undotree
+vim.cmd.packadd("nvim.undotree")
+vim.keymap.set("n", "<leader>u", "<cmd>Undotree<CR>", { desc = "Toggle undo tree" })
+
 -- ==============================================================================
 -- BUFFER NAVIGATION
 -- ==============================================================================
@@ -198,14 +202,11 @@ vim.lsp.config("lua_ls", {
   settings = {
     Lua = {
       diagnostics = {
-        globals = { "vim" },
+        globals = { "vim" }, -- Stops "Undefined global: vim"
       },
       workspace = {
-        library = vim.api.nvim_get_runtime_file("", true),
-        checkThirdParty = false,
-      },
-      telemetry = {
-        enable = false,
+        library = { vim.env.VIMRUNTIME }, -- Autocomplete for Neovim APIs
+        checkThirdParty = false,          -- Stops annoying prompts
       },
     },
   },
