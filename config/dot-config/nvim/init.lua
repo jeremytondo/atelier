@@ -193,9 +193,6 @@ vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Go to right window" })
 -- Show diagnostic/LSP messages in a floating window
 vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, { desc = "Line diagnostics" })
 
--- Terminal commands
-vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
-
 -- ==============================================================================
 -- Language Servers (LSP)
 -- ==============================================================================
