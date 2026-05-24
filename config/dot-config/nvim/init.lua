@@ -118,6 +118,7 @@ vim.o.autocompletedelay = 100              -- Debounce delay in ms before the me
 opt.complete = ".,w,b,k,o"                 -- Scan current buffer, other windows, and active buffers
 opt.completeopt = "menuone,noselect,fuzzy" -- Native fuzzy matching inside the popup!
 
+-- Disable native autocomplete in snacks picker
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "snacks_picker_input",
   callback = function()
