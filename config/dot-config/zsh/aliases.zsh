@@ -55,7 +55,7 @@ alias agws='autossh -M 0 -q -t workstation -- /home/jeremytondo/.local/bin/ateli
 alias agwk='autossh -M 0 -q -t workstation -- /home/jeremytondo/.local/bin/atelier-go sessions kill'
 
 # alias wst='autossh -M 0 -q -t workstation'
-alias wst='autossh -M 0 -q -t workstation -- zmx attach workstation'
+alias wst='autossh -M 0 -q -t workstation -- /home/jeremytondo/.local/bin/zmx attach workstation'
 
 # Work Specific Aliases
 if [[ "$ATELIER_TAGS" == *"work"* ]]; then
