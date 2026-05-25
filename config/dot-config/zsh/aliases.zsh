@@ -53,8 +53,6 @@ export ATELIER_CLIENT_ID="${ATELIER_CLIENT_ID:-$(uname -n | cut -d'.' -f1)-$(uui
 alias agw='autossh -M 0 -q -t workstation -- "/home/jeremytondo/.local/bin/atelier-go --client-id=$ATELIER_CLIENT_ID"'
 alias agws='autossh -M 0 -q -t workstation -- /home/jeremytondo/.local/bin/atelier-go sessions list'
 alias agwk='autossh -M 0 -q -t workstation -- /home/jeremytondo/.local/bin/atelier-go sessions kill'
-
-# alias wst='autossh -M 0 -q -t workstation'
 alias wst='autossh -M 0 -q -t workstation -- "exec /home/jeremytondo/.local/bin/zmx attach workstation"'
 
 # Work Specific Aliases
