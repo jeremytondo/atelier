@@ -24,6 +24,11 @@ Snacks.setup({
 
   lazygit = {
     enabled = true,
+    win = {
+      width = 0,
+      height = 0,
+    },
+
   },
 
   terminal = {
