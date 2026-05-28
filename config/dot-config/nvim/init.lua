@@ -214,3 +214,16 @@ vim.lsp.config("lua_ls", {
 })
 
 vim.lsp.enable({ "bashls", "lua_ls" })
+
+-- ==============================================================================
+-- Markdown Viewing & Editing
+-- ==============================================================================
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "markdown", "text" },
+  callback = function()
+    vim.opt_local.wrap = true
+    vim.opt_local.linebreak = true
+    vim.opt_local.breakindent = true
+    vim.opt_local.breakindentopt = "list:-1"
+  end,
+})
