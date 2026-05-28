@@ -49,6 +49,7 @@ opt.confirm = true        -- Confirm to save changes before exiting modified buf
 opt.concealcursor = ""    -- Don't hide cursor line markup
 opt.synmaxcol = 300       -- Syntax highlighting limit
 opt.ruler = false         -- Disable the default ruler
+opt.colorcolumn = "100"   -- Show a guide at column 100
 opt.virtualedit = "block" -- Allow cursor to move where there is no text in visual block mode
 opt.winminwidth = 5       -- Minimum window width
 opt.winborder = "rounded" -- Floating window border
