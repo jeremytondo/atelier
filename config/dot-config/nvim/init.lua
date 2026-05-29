@@ -225,5 +225,6 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.opt_local.linebreak = true
     vim.opt_local.breakindent = true
     vim.opt_local.breakindentopt = "list:-1"
+    vim.bo.autocomplete = false
   end,
 })
