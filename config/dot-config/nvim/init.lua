@@ -193,6 +193,8 @@ vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Go to right window" })
 
 -- Show diagnostic/LSP messages in a floating window
 vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, { desc = "Line diagnostics" })
+vim.keymap.set("n", "<leader>lr", "<cmd>lsp restart<cr>", { desc = "Restart LSP" })
+
 
 -- ==============================================================================
 -- Language Servers (LSP)
