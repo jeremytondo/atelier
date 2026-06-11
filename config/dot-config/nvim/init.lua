@@ -213,7 +213,7 @@ vim.lsp.config("lua_ls", {
   },
 })
 
-vim.lsp.enable({ "bashls", "lua_ls" })
+vim.lsp.enable({ "bashls", "gopls", "lua_ls" })
 
 -- ==============================================================================
 -- Markdown Viewing & Editing
