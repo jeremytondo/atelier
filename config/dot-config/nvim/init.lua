@@ -49,6 +49,7 @@ opt.confirm = true        -- Confirm to save changes before exiting modified buf
 opt.concealcursor = ""    -- Don't hide cursor line markup
 opt.synmaxcol = 300       -- Syntax highlighting limit
 opt.ruler = false         -- Disable the default ruler
+opt.colorcolumn = "100"   -- Show a guide at column 100
 opt.virtualedit = "block" -- Allow cursor to move where there is no text in visual block mode
 opt.winminwidth = 5       -- Minimum window width
 opt.winborder = "rounded" -- Floating window border
@@ -192,6 +193,8 @@ vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Go to right window" })
 
 -- Show diagnostic/LSP messages in a floating window
 vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, { desc = "Line diagnostics" })
+vim.keymap.set("n", "<leader>lr", "<cmd>lsp restart<cr>", { desc = "Restart LSP" })
+
 
 -- ==============================================================================
 -- Language Servers (LSP)
@@ -212,4 +215,18 @@ vim.lsp.config("lua_ls", {
   },
 })
 
-vim.lsp.enable({ "bashls", "lua_ls" })
+vim.lsp.enable({ "bashls", "gopls", "lua_ls" })
+
+-- ==============================================================================
+-- Markdown Viewing & Editing
+-- ==============================================================================
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "markdown", "text" },
+  callback = function()
+    vim.opt_local.wrap = true
+    vim.opt_local.linebreak = true
+    vim.opt_local.breakindent = true
+    vim.opt_local.breakindentopt = "list:-1"
+    vim.bo.autocomplete = false
+  end,
+})

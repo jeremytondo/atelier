@@ -33,6 +33,20 @@ Snacks.setup({
 
   terminal = {
     enabled = true,
+  },
+
+  zen = {
+    enabled = true,
+    toggles = {
+      dim = false,
+      git_signs = true,
+    },
+    show = {
+      statusline = true,
+    },
+    win = {
+      width = 100,
+    },
   }
 })
 
@@ -41,5 +55,6 @@ vim.keymap.set("n", "<leader><leader>", function() Snacks.picker.smart() end, { 
 vim.keymap.set("n", "<leader>,", function() Snacks.picker.buffers() end, { desc = "Buffers" })
 vim.keymap.set("n", "<leader>e", function() Snacks.explorer() end, { desc = "Toggle Netrw Sidebar" })
 vim.keymap.set("n", "<leader>gg", function() Snacks.lazygit() end, { desc = "LazyGit" })
+vim.keymap.set("n", "<leader>z", function() Snacks.zen() end, { desc = "Zen" })
 vim.keymap.set({ "n", "i", "t" }, "<C-/>", function() Snacks.terminal.toggle() end, { desc = "Toggle Terminal" })
 vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })

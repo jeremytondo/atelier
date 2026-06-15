@@ -18,3 +18,6 @@ keybind = opt+super+j=goto_split:bottom
 keybind = opt+super+k=goto_split:top
 keybind = opt+super+l=goto_split:right
 
+# Make Shift+Enter work consistently in coding cli tools. 
+keybind = shift+enter=text:\x1b\r 
+
