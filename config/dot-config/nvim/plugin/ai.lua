@@ -108,6 +108,7 @@ end
 -- Direct-to-tool
 vim.keymap.set("n", "<leader>ai", function() toggle("codex", "codex") end, { desc = "Codex" })
 vim.keymap.set("n", "<leader>ac", function() toggle("claude", "claude") end, { desc = "Claude" })
+vim.keymap.set("n", "<leader>aj", function() toggle("jetski", "jetski") end, { desc = "JetSki" })
 vim.keymap.set("n", "<leader>as", function() send_context_to_ai() end, { desc = "Send file context to AI" })
 vim.keymap.set("v", "<leader>as", function()
   send_context_to_ai(vim.fn.line("'<"), vim.fn.line("'>"))
