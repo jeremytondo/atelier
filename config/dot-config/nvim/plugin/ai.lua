@@ -37,10 +37,31 @@ local function current_file_context(start_line, end_line)
 
   if start_line and end_line then
     if start_line > end_line then start_line, end_line = end_line, start_line end
+    if start_line == end_line then return string.format("@%s:%d", path, start_line) end
     return string.format("@%s:%d-%d", path, start_line, end_line)
   end
 
   return "@" .. path
+end
+
+local function copy_context_to_clipboard(start_line, end_line)
+  start_line = start_line or vim.fn.line(".")
+  end_line = end_line or start_line
+
+  local text = current_file_context(start_line, end_line)
+  if not text then
+    vim.notify("No file context to copy", vim.log.levels.WARN)
+    return
+  end
+
+  local ok, err = pcall(vim.fn.setreg, "+", text)
+  if not ok then
+    vim.notify("Could not copy file context: " .. err, vim.log.levels.ERROR)
+    return
+  end
+
+  vim.fn.setreg('"', text)
+  vim.notify("Copied " .. text)
 end
 
 local function toggle(name, cmd)
@@ -113,6 +134,11 @@ vim.keymap.set("n", "<leader>as", function() send_context_to_ai() end, { desc = 
 vim.keymap.set("v", "<leader>as", function()
   send_context_to_ai(vim.fn.line("'<"), vim.fn.line("'>"))
 end, { desc = "Send selection context to AI" })
+
+vim.keymap.set("n", "<leader>ag", function() copy_context_to_clipboard() end, { desc = "Copy AI file context" })
+vim.keymap.set("v", "<leader>ag", function()
+  copy_context_to_clipboard(vim.fn.line("'<"), vim.fn.line("'>"))
+end, { desc = "Copy AI file context" })
 
 -- Quick toggle of the last-used AI terminal, from normal or terminal mode
 vim.keymap.set({ "n", "t" }, "<C-.>", smart_toggle, { desc = "Toggle AI terminal" })
