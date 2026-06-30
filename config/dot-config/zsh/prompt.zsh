@@ -14,13 +14,13 @@ setopt PROMPT_SUBST
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
   PS1=$'\uf0a9 '
-  RPROMPT="\$vcs_info_msg_0_"
+  # RPROMPT="\$vcs_info_msg_0_"
 elif [[ -f "/.dockerenv" || -n "$container" ]]; then
   # PS1=$'%{\e[33m%}\uf0a9 %{\e[0m%}'
   PS1=$'%{\e[38;5;141m%}\uf0a9 %{\e[0m%}'
 else
   PS1=$'%{\e[34m%}\uf0a9 %{\e[0m%}'
-  RPROMPT="\$vcs_info_msg_0_"
+  # RPROMPT="\$vcs_info_msg_0_"
   
   # This right prompt version includes the shpool session name
   # RPROMPT=$'\$vcs_info_msg_0_${(0)${SHPOOL_SESSION_NAME:+ \uf50c \$SHPOOL_SESSION_NAME}}'
