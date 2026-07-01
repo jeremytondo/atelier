@@ -11,7 +11,7 @@
     "gopls-lsp@claude-plugins-official": true,
     "swift-lsp@claude-plugins-official": true
   },
-  "effortLevel": "high",
-  "agentPushNotifEnabled": true,
-  "model": "opus[1m]"
+  "effortLevel": "xhigh",
+  "tui": "fullscreen",
+  "agentPushNotifEnabled": true
 }
