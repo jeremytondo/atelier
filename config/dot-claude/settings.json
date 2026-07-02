@@ -17,6 +17,7 @@
   "effortLevel": "xhigh",
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
+  "theme": "dark",
   "agentPushNotifEnabled": true,
-  "model": "opus"
+  "model": "sonnet"
 }
