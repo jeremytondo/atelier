@@ -1,15 +1,17 @@
 [tools]
-"cargo:jj-cli" = "latest"
 go = "latest"
-"go:golang.org/x/tools/gopls" = "latest"
 lua-language-server = "latest"
 neovim = "latest"
 node = "latest"
+rust = "latest"
+claude = "latest"
+lazygit = "latest"
+codex = "latest"
+"cargo:jj-cli" = "latest"
+"go:golang.org/x/tools/gopls" = "latest"
 "npm:@openai/codex" = "latest"
 "npm:bash-language-server" = "latest"
-rust = "latest"
 "npm:hunkdiff" = "latest"
-lazygit = "latest"
 
 [settings]
 experimental = true
