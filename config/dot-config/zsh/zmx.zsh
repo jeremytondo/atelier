@@ -17,11 +17,11 @@ zmx-select() {
   # Launch fzf interface
   output=$({ [[ -n "$display" ]] && echo "$display"; } | fzf \
     --print-query \
-    --expect=ctrl-n \
+    --expect=ctrl-a \
     --height=80% \
     --reverse \
     --prompt="zmx> " \
-    --header="Enter: select | Ctrl-N: create new" \
+    --header="Enter: select | Ctrl-A: create new" \
     --preview='zmx history {1}' \
     --preview-window=right:60%:follow \
   )
@@ -32,7 +32,7 @@ zmx-select() {
   selected=$(echo "$output" | sed -n '3p')
   
   # Handle the selection logic
-  if [[ "$key" == "ctrl-n" && -n "$query" ]]; then
+  if [[ "$key" == "ctrl-a" && -n "$query" ]]; then
     session_name="$query"
   elif [[ $rc -eq 0 && -n "$selected" ]]; then
     session_name=$(echo "$selected" | awk '{print $1}')
