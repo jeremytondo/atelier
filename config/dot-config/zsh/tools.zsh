@@ -5,15 +5,20 @@ if [[ -f "$HOME/.config/atelier/config.local" ]]; then
   set +a
 fi
 
-# ZSH auto suggestions.
-# source ~/.local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-
 # Initialize Homebrew on MacOS
 if [[ "$(uname -s)" == "Darwin" ]]; then
   if [[ -x /opt/homebrew/bin/brew ]]; then
     eval "$(/opt/homebrew/bin/brew shellenv)"
+  elif [[ -x /usr/local/bin/brew ]]; then
+    eval "$(/usr/local/bin/brew shellenv)"
   fi
+fi
+
+# ZSH auto suggestions.
+if [[ -n "$HOMEBREW_PREFIX" && -f "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
+  source "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+elif [[ -f /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]]; then
+  source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 fi
 
 # FZF
@@ -51,4 +56,3 @@ if [[ "$ATELIER_TAGS" == *"google3"* ]]; then
   source /etc/bash_completion.d/jjd
   export TERMINFO_DIRS="$HOME/.terminfo:/usr/share/terminfo:/lib/terminfo"
 fi
-
