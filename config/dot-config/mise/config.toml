@@ -7,6 +7,8 @@ neovim = "latest"
 node = "latest"
 "npm:@openai/codex" = "latest"
 "npm:bash-language-server" = "latest"
+rust = "latest"
+"npm:hunkdiff" = "latest"
 
 [settings]
 experimental = true
