@@ -13,3 +13,4 @@ lazygit = "latest"
 
 [settings]
 experimental = true
+minimum_release_age = "0s"
