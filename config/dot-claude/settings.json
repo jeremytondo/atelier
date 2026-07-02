@@ -3,6 +3,9 @@
     "commit": "",
     "pr": ""
   },
+  "permissions": {
+    "defaultMode": "auto"
+  },
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/statusline-command.sh"
@@ -13,5 +16,7 @@
   },
   "effortLevel": "xhigh",
   "tui": "fullscreen",
-  "agentPushNotifEnabled": true
+  "skipDangerousModePermissionPrompt": true,
+  "agentPushNotifEnabled": true,
+  "model": "opus"
 }
