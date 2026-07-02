@@ -9,6 +9,7 @@ node = "latest"
 "npm:bash-language-server" = "latest"
 rust = "latest"
 "npm:hunkdiff" = "latest"
+lazygit = "latest"
 
 [settings]
 experimental = true
