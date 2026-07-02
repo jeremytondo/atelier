@@ -1,0 +1,18 @@
+{
+  "actions": {
+    "claude": {
+      "label": "Claude",
+      "description": "Claude Code CLI",
+      "command": "claude",
+      "args": [
+        "--dangerously-skip-permissions"
+      ],
+      "prompt": {}
+    },
+    "lazygit": {
+      "label": "LazyGit",
+      "description": "Open LazyGit",
+      "command": "lazygit"
+    }
+  }
+}
