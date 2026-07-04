@@ -46,4 +46,11 @@ config/dot-claude/projects
 config/dot-claude/history.jsonl
 config/dot-claude/mcp-needs-auth-cache.json
 config/dot-claude/.credentials.json
+config/dot-claude/.last-cleanup
+config/dot-claude/file-history
+config/dot-claude/plans
+config/dot-claude/sessions
+config/dot-claude/shell-snapshots
+config/dot-claude/tasks
+
 
