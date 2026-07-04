@@ -1,21 +1,33 @@
 # Local ZMX orchestration for remote sessions.
 
-_ash_zmx_bin_for_host() {
-  case "$1" in
-    mini) printf '%s\n' "/opt/homebrew/bin/zmx" ;;
-    *)
-      printf 'ash currently supports only: mini\n' >&2
-      return 1
-      ;;
-  esac
+_ash_zmx_remote_resolver() {
+  printf '%s\n' 'zmx_bin=$(command -v zmx 2>/dev/null || true)
+if [ -z "$zmx_bin" ]; then
+  for zmx_candidate in "$HOME/.local/bin/zmx" /opt/homebrew/bin/zmx /usr/local/bin/zmx /usr/bin/zmx; do
+    if [ -x "$zmx_candidate" ]; then
+      zmx_bin="$zmx_candidate"
+      break
+    fi
+  done
+fi
+if [ -z "$zmx_bin" ]; then
+  printf "%s\n" "zmx was not found on the remote host. Install zmx or put it on PATH." >&2
+  exit 127
+fi'
+}
+
+_ash_zmx_remote_command() {
+  local zmx_args="$1"
+
+  printf '%s\nexec "$zmx_bin" %s\n' "$(_ash_zmx_remote_resolver)" "$zmx_args"
 }
 
 _ash_validate_session_name() {
   local session_name="$1"
 
   case "$session_name" in
-    ""|*[!A-Za-z0-9._-]*)
-      printf 'Session names may contain only letters, numbers, dot, underscore, and dash.\n' >&2
+    ""|*[!A-Za-z0-9._:-]*)
+      printf 'Session names may contain only letters, numbers, dot, underscore, dash, and colon.\n' >&2
       return 1
       ;;
   esac
@@ -24,21 +36,17 @@ _ash_validate_session_name() {
 _ash_attach() {
   local host="$1"
   local session_name="$2"
-  local zmx_bin
 
-  zmx_bin="$(_ash_zmx_bin_for_host "$host")" || return 1
   _ash_validate_session_name "$session_name" || return 1
 
   printf 'Attaching to %s.%s with autossh...\n' "$host" "$session_name"
-  autossh -M 0 -q -t "$host" -- "exec $zmx_bin attach $session_name"
+  autossh -M 0 -q -t "$host" -- "$(_ash_zmx_remote_command "attach $session_name")"
 }
 
 _ash_fetch_sessions() {
   local host="$1"
-  local zmx_bin
 
-  zmx_bin="$(_ash_zmx_bin_for_host "$host")" || return 1
-  ssh -q -T "$host" "$zmx_bin list" 2>/dev/null
+  ssh -q -T "$host" "$(_ash_zmx_remote_command list)"
 }
 
 _ash_format_sessions() {
@@ -99,7 +107,7 @@ ash() {
   local host session_name
 
   if [[ -z "$target" ]]; then
-    printf 'Usage: ash mini[.session]\n' >&2
+    printf 'Usage: ash host[.session]\n' >&2
     return 1
   fi
 
