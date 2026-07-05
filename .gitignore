@@ -52,5 +52,6 @@ config/dot-claude/plans
 config/dot-claude/sessions
 config/dot-claude/shell-snapshots
 config/dot-claude/tasks
+config/dot-config/cockpit
 
 
