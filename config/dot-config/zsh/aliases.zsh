@@ -38,7 +38,7 @@ compress() { tar -czf "${1%/}.tar.gz" "${1%/}"; }
 alias decompress="tar -xzf"
 
 # Atelier commands 
-alias atc='(cd ~/.local/share/atelier/ && nvim)'
+# alias atc='(cd ~/.local/share/atelier/ && nvim)'
 alias ats='~/.local/share/atelier/scripts/status.sh'
 alias atp='~/.local/share/atelier/scripts/sync.sh'
 
