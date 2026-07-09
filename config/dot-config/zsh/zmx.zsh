@@ -18,8 +18,14 @@ fi'
 
 _ash_zmx_remote_command() {
   local zmx_args="$1"
+  local terminal_title="${2:-}"
 
-  printf '%s\nexec "$zmx_bin" %s\n' "$(_ash_zmx_remote_resolver)" "$zmx_args"
+  printf '%s\n' "$(_ash_zmx_remote_resolver)"
+  if [[ -n "$terminal_title" ]]; then
+    terminal_title="$(_ash_terminal_title_text "$terminal_title")"
+    printf "printf '%s' '%s'\n" '\033]0;%s\007' "$terminal_title"
+  fi
+  printf 'exec "$zmx_bin" %s\n' "$zmx_args"
 }
 
 _ash_validate_session_name() {
@@ -33,14 +39,37 @@ _ash_validate_session_name() {
   esac
 }
 
+_ash_terminal_title_text() {
+  local title="$1"
+
+  printf '%s' "${title//[^A-Za-z0-9._:@-]/-}"
+}
+
+_ash_terminal_title() {
+  local title="$1"
+
+  title="${title//$'\e'/}"
+  title="${title//$'\a'/}"
+  title="${title//$'\r'/ }"
+  title="${title//$'\n'/ }"
+  printf '\e]0;%s\a' "$title"
+}
+
 _ash_attach() {
   local host="$1"
   local session_name="$2"
+  local title rc
 
   _ash_validate_session_name "$session_name" || return 1
 
-  printf 'Attaching to %s.%s with autossh...\n' "$host" "$session_name"
-  autossh -M 0 -q -t "$host" -- "$(_ash_zmx_remote_command "attach $session_name")"
+  title="$(_ash_terminal_title_text "$host.$session_name")"
+
+  _ash_terminal_title "$title"
+  printf 'Attaching to %s with autossh...\n' "$title"
+  autossh -M 0 -q -t "$host" -- "$(_ash_zmx_remote_command "attach $session_name" "$title")"
+  rc=$?
+  _ash_terminal_title "${PWD:t}"
+  return $rc
 }
 
 _ash_fetch_sessions() {
