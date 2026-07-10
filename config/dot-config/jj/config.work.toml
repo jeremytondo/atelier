@@ -1,0 +1,9 @@
+#:schema https://docs.jj-vcs.dev/latest/config-schema.json
+
+[user]
+name = "Jeremy Margaritondo"
+email = "jeremytondo@google.com"
+
+[ui]
+default-command = "log"
+
