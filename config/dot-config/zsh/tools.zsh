@@ -48,11 +48,12 @@ export CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1
 
 # Work Specific Tools
 if [[ "$ATELIER_TAGS" == *"work"* ]]; then
-  export JJ_CONFIG="$HOME/.config/jj/config.toml:$HOME/.config/jj/config-work.toml"
+  export JJ_CONFIG="$HOME/.config/jj/config.toml:$HOME/.config/jj/config.work.toml"
 fi
 
 # Google3 Specific tools
 if [[ "$ATELIER_TAGS" == *"google3"* ]]; then
+  source /etc/bash_completion.d/g4d
   source /etc/bash_completion.d/hgd
   source /etc/bash_completion.d/jjd
   export TERMINFO_DIRS="$HOME/.terminfo:/usr/share/terminfo:/lib/terminfo"
