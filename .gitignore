@@ -40,17 +40,27 @@ config/dot-config/.gsd-keyboard.settings-ported
 config/dot-config/google-chrome
 config/dot-config/jj/repos
 config/dot-config/jj/config.work.toml
-config/dot-claude/backups
-config/dot-claude/cache
-config/dot-claude/plugins
-config/dot-claude/projects
-config/dot-claude/history.jsonl
-config/dot-claude/mcp-needs-auth-cache.json
-config/dot-claude/.credentials.json
-config/dot-claude/.last-cleanup
-config/dot-claude/file-history
-config/dot-claude/plans
-config/dot-claude/sessions
-config/dot-claude/shell-snapshots
-config/dot-claude/tasks
+
+# Claude Code stores generated state and credentials alongside user config.
+# Ignore everything by default, then allow portable, user-authored config.
+config/dot-claude/*
+!config/dot-claude/settings.json
+!config/dot-claude/keybindings.json
+!config/dot-claude/statusline-command.sh
+!config/dot-claude/CLAUDE.md
+!config/dot-claude/agents/
+!config/dot-claude/agents/**
+!config/dot-claude/commands/
+!config/dot-claude/commands/**
+!config/dot-claude/hooks/
+!config/dot-claude/hooks/**
+!config/dot-claude/output-styles/
+!config/dot-claude/output-styles/**
+!config/dot-claude/rules/
+!config/dot-claude/rules/**
+!config/dot-claude/skills/
+!config/dot-claude/skills/**
+
+# Local absolute symlink; the canonical skill is managed outside this repo.
+config/dot-claude/skills/xcodebuildmcp-cli
 config/dot-config/cockpit
