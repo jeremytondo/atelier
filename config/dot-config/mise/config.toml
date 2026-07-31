@@ -13,6 +13,9 @@ gh = "latest"
 "npm:@openai/codex" = "latest"
 "npm:bash-language-server" = "latest"
 "npm:hunkdiff" = "latest"
+hunkdiff = "latest"
+"npm:xcodebuildmcp" = "latest"
+"github:agavra/tuicr" = "latest"
 
 [settings]
 experimental = true
