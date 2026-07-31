@@ -23,6 +23,7 @@ alias r='rails'
 alias lzg='lazygit'
 alias lzd='lazydocker'
 alias dc='devcontainer'
+alias cr='tuicr'
 
 if [[ "$(uname -s)" == "Linux" ]]; then
   alias bat='batcat'
