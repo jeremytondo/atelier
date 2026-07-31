@@ -4,8 +4,12 @@
     "pr": ""
   },
   "permissions": {
+    "allow": [
+      "Bash(xcodebuild *)"
+    ],
     "defaultMode": "auto"
   },
+  "model": "claude-fable-5[1m]",
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/statusline-command.sh"
@@ -14,10 +18,15 @@
     "gopls-lsp@claude-plugins-official": true,
     "swift-lsp@claude-plugins-official": true
   },
-  "effortLevel": "xhigh",
+  "sandbox": {
+    "excludedCommands": [
+      "xcodebuild"
+    ]
+  },
+  "effortLevel": "high",
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark",
-  "agentPushNotifEnabled": true,
-  "model": "sonnet"
+  "remoteControlAtStartup": true,
+  "agentPushNotifEnabled": true
 }
