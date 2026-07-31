@@ -16,3 +16,7 @@ export BAT_THEME="Nord"
 # Terminal color settings
 export COLORTERM="truecolor"
 
+# Initialize Zsh's completion system
+autoload -Uz compinit
+compinit
+

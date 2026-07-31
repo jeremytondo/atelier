@@ -46,6 +46,16 @@ export OPENCODE_DISABLE_TERMINAL_TITLE=true
 # Claude Code
 export CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1
 
+# JJ Completions
+source <(COMPLETE=zsh jj)
+
+# Bun 
+[ -s "/Users/jeremytondo/.bun/_bun" ] && source "/Users/jeremytondo/.bun/_bun"
+
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+
 # Work Specific Tools
 if [[ "$ATELIER_TAGS" == *"work"* ]]; then
   export JJ_CONFIG="$HOME/.config/jj/config.toml:$HOME/.config/jj/config.work.toml"
