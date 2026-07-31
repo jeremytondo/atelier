@@ -40,6 +40,8 @@ config/dot-config/.gsd-keyboard.settings-ported
 config/dot-config/google-chrome
 config/dot-config/jj/repos
 config/dot-config/jj/config.work.toml
+config/dot-config/hunk
+config/dot-config/atc
 
 # Claude Code stores generated state and credentials alongside user config.
 # Ignore everything by default, then allow portable, user-authored config.
