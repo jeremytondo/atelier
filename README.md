@@ -2,7 +2,7 @@
 
 A personal, headless, image-based OS built on [Fedora bootc](https://docs.fedoraproject.org/en-US/bootc/). Machines run a released image, download new versions in the background, apply them when the developer chooses, and can roll back.
 
-The image carries only the system. Development tools, mise itself and dotfiles live in the user's mise-managed environment. Machine details such as the hostname, user account and SSH keys come from provisioning: cloud-init on VMs, and a kickstart on bare metal.
+The image carries only the system. Development tools, mise itself and dotfiles live in the user's mise-managed environment. The one exception is a C toolchain, which mise can't provide. Machine details such as the hostname, user account and SSH keys come from provisioning: cloud-init on VMs, and a kickstart on bare metal.
 
 The image is public at `ghcr.io/jeremytondo/atelieros`. It must never contain secrets, user accounts, SSH keys or hostnames.
 
@@ -11,6 +11,7 @@ The image is public at `ghcr.io/jeremytondo/atelieros`. It must never contain se
 On top of `quay.io/fedora/fedora-bootc:44`, which already has openssh-server, podman, toolbox, sudo and NetworkManager:
 
 - **Packages:** git, zsh, libatomic, `xterm-ghostty` terminfo, Tailscale, cloud-init, qemu-guest-agent, distrobox, Chromium, firewalld and qrencode.
+- **C toolchain:** gcc, g++, make and pkg-config, for building native code such as Rust crates. When a build needs a library's headers, add its `-devel` package to the `Containerfile`.
 - **Shell:** zsh is the default login shell for new users.
 - **First-login setup:** `atelieros-setup`, and a login hook that starts it. See [Setting up a new machine](#setting-up-a-new-machine).
 - **SSH:** key authentication only. Password authentication and root login are rejected.
