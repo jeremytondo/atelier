@@ -10,7 +10,8 @@ The image is public at `ghcr.io/jeremytondo/atelieros`. It must never contain se
 
 On top of `quay.io/fedora/fedora-bootc:44`, which already has openssh-server, podman, toolbox, sudo and NetworkManager:
 
-- **Packages:** git, zsh, libatomic, `xterm-ghostty` terminfo, Tailscale, cloud-init, qemu-guest-agent, distrobox, Chromium, firewalld and qrencode.
+- **Packages:** git, zsh, libatomic, `xterm-ghostty` terminfo, Tailscale, cloud-init, qemu-guest-agent, distrobox, firewalld and qrencode.
+- **Browser libraries:** the system libraries Playwright's Chromium needs, such as nss, at-spi2, cups-libs, libgbm, pango and fontconfig. Playwright downloads the browser itself into the user's home directory, so the image has no browser.
 - **C toolchain:** gcc, g++, make and pkg-config, for building native code such as Rust crates. When a build needs a library's headers, add its `-devel` package to the `Containerfile`.
 - **Shell:** zsh is the default login shell for new users.
 - **First-login setup:** `atelieros-setup`, and a login hook that starts it. See [Setting up a new machine](#setting-up-a-new-machine).
@@ -168,6 +169,8 @@ OS packages are never installed on a running machine. dnf refuses to install on 
 3. Commit and push, then run `mise run release:dev`.
 4. Switch a machine to `:dev` and check the change.
 5. Run `mise run release:patch`, and switch the test machine back to `:stable`.
+
+Weak dependencies are left out of the image, since on a headless machine they're desktop pieces such as PipeWire and Vulkan drivers. If a package needs one of them, add it to the `Containerfile` by name. Watch the qcow2 size in the release summary: GitHub refuses release assets over 2 GiB.
 
 For a one-off tool, use a distrobox container instead, for example an Arch container with the AUR. For a temporary experiment, `sudo bootc usr-overlay` makes `/usr` writable until the next reboot.
 

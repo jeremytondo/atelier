@@ -10,8 +10,13 @@ COPY system_files/ /
 # ncurses-term carries the ghostty terminfo entry that xterm-ghostty extends.
 # The C toolchain is for building native code, such as Rust crates that link
 # with cc; mise can't provide it.
-RUN dnf -y install \
-        chromium \
+# The second group is the libraries Playwright's Chromium links against.
+# Playwright downloads the browser itself, and `playwright install-deps` only
+# supports Debian and Ubuntu.
+# Weak dependencies are skipped: for a headless machine they're desktop
+# pieces such as PipeWire and Vulkan drivers, and they push the qcow2 towards
+# GitHub's 2 GiB release-asset limit.
+RUN dnf -y install --setopt=install_weak_deps=False \
         cloud-init \
         distrobox \
         firewalld \
@@ -26,6 +31,25 @@ RUN dnf -y install \
         qrencode \
         tailscale \
         zsh \
+        alsa-lib \
+        at-spi2-atk \
+        at-spi2-core \
+        atk \
+        cairo \
+        cups-libs \
+        fontconfig \
+        libX11 \
+        libXcomposite \
+        libXdamage \
+        libXext \
+        libXfixes \
+        libXrandr \
+        libxcb \
+        libxkbcommon \
+        mesa-libgbm \
+        nspr \
+        nss \
+        pango \
     && dnf clean all \
     && rm -rf /var/cache/* /var/log/* /var/lib/dnf /var/lib/authselect /run/cloud-init /run/dnf
 
