@@ -8,14 +8,20 @@ COPY system_files/ /
 
 # tailscale comes from Tailscale's repository (system_files/etc/yum.repos.d).
 # ncurses-term carries the ghostty terminfo entry that xterm-ghostty extends.
+# The C toolchain is for building native code, such as Rust crates that link
+# with cc; mise can't provide it.
 RUN dnf -y install \
         chromium \
         cloud-init \
         distrobox \
         firewalld \
+        gcc \
+        gcc-c++ \
         git \
         libatomic \
+        make \
         ncurses-term \
+        pkgconf-pkg-config \
         qemu-guest-agent \
         qrencode \
         tailscale \
