@@ -10,7 +10,8 @@ The image is public at `ghcr.io/jeremytondo/atelieros`. It must never contain se
 
 On top of `quay.io/fedora/fedora-bootc:44`, which already has openssh-server, podman, toolbox, sudo and NetworkManager:
 
-- **Packages:** git, zsh, libatomic, `xterm-ghostty` terminfo, Tailscale, cloud-init, qemu-guest-agent, distrobox, Chromium, firewalld and qrencode.
+- **Packages:** git, zsh, libatomic, `xterm-ghostty` terminfo, Tailscale, cloud-init, qemu-guest-agent, distrobox, firewalld and qrencode.
+- **Browser libraries:** the system libraries Playwright's Chromium needs, such as nss, at-spi2, cups-libs, libgbm, pango and fontconfig. Playwright downloads the browser itself into the user's home directory, so the image has no browser.
 - **C toolchain:** gcc, g++, make and pkg-config, for building native code such as Rust crates. When a build needs a library's headers, add its `-devel` package to the `Containerfile`.
 - **Shell:** zsh is the default login shell for new users.
 - **First-login setup:** `atelieros-setup`, and a login hook that starts it. See [Setting up a new machine](#setting-up-a-new-machine).
@@ -45,11 +46,13 @@ Releases are cut by one GitHub Actions workflow, dispatched from mise:
 
 A production release does the following:
 
-1. It computes the next version from the repository's tags and tags the commit.
-2. It builds the image from that commit and pushes it as `:vX.Y.Z`.
+1. It computes the next version from the repository's tags.
+2. It builds the image from that commit.
 3. It builds a qcow2 disk image from it with [image-builder](https://github.com/osbuild/image-builder). It's built from a local `:stable` tag, so machines created from it track `:stable`. The file isn't wrapped in `.xz` or similar, so Proxmox can import it directly. Like Fedora's cloud images, it's compressed inside the qcow2 format.
-4. It moves `:stable` to the new image.
-5. It creates a GitHub Release with the qcow2 and its sha256 checksum.
+4. It checks the qcow2 against GitHub's 2 GiB release-asset limit. Over the limit, the run fails before anything is published. From 90% of the limit, it warns. The run summary shows the size either way.
+5. It tags the commit and pushes the image as `:vX.Y.Z`.
+6. It moves `:stable` to the new image.
+7. It creates a GitHub Release with the qcow2 and its sha256 checksum.
 
 `dev` builds produce no qcow2, git tag or GitHub Release.
 
@@ -168,6 +171,8 @@ OS packages are never installed on a running machine. dnf refuses to install on 
 3. Commit and push, then run `mise run release:dev`.
 4. Switch a machine to `:dev` and check the change.
 5. Run `mise run release:patch`, and switch the test machine back to `:stable`.
+
+Weak dependencies are left out of the image, since on a headless machine they're desktop pieces such as PipeWire and Vulkan drivers. If a package needs one of them, add it to the `Containerfile` by name. Watch the qcow2 size in the release summary: GitHub refuses release assets over 2 GiB.
 
 For a one-off tool, use a distrobox container instead, for example an Arch container with the AUR. For a temporary experiment, `sudo bootc usr-overlay` makes `/usr` writable until the next reboot.
 

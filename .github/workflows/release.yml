@@ -8,8 +8,10 @@ name: Release
 # release from main so Fedora's updates reach :stable.
 #
 # Production tags, images and releases are never moved, edited or deleted.
-# A failed production run never advances the version chain: re-running it
-# resumes the newest tag until its release is complete.
+# A failed production run never advances the version chain. The qcow2 is
+# built and checked before anything is published, so a run that fails up to
+# there leaves no trace. Once the tag is pushed, re-running resumes the
+# newest tag until its release is complete.
 
 on:
   workflow_dispatch:
@@ -40,9 +42,11 @@ env:
   # Scheduled runs have no inputs.
   BUMP: ${{ inputs.bump || 'patch' }}
   # image-builder writes a zlib-compressed qcow2, which Proxmox imports like
-  # Fedora's cloud images. GitHub caps release assets at 2 GiB.
+  # Fedora's cloud images. GitHub caps release assets at 2 GiB, and runs warn
+  # from WARN_ASSET_BYTES (90%) on.
   IMAGE_BUILDER: ghcr.io/osbuild/image-builder-cli:v86.0.0
   MAX_ASSET_BYTES: "2147483648"
+  WARN_ASSET_BYTES: "1932735283"
 
 jobs:
   release:
@@ -115,15 +119,15 @@ jobs:
             # v1.0.0 is cut deliberately, with release:major.
             [ -z "$latest" ] && next="v0.1.0"
             echo "cutting $next (previous: ${latest:-none}) from $GITHUB_SHA"
-            git tag "$next"
-            git push origin "$next"
+            # The tag is pushed once the qcow2 has passed its size check.
+            echo "NEW_TAG=true" >>"$GITHUB_ENV"
           else
             previous=$(tail -n2 <<<"$tags" | head -n1 | grep -vx "$next" || true)
           fi
           echo "VERSION=$next" >>"$GITHUB_ENV"
           echo "PREVIOUS=$previous" >>"$GITHUB_ENV"
 
-      - name: Build and push the versioned image
+      - name: Build the versioned image
         if: env.BUMP != 'dev'
         run: |
           # A resumed run reuses an image an earlier attempt already pushed,
@@ -136,7 +140,7 @@ jobs:
               --build-arg VERSION="$VERSION" \
               --build-arg REVISION="$GITHUB_SHA" \
               --tag "$IMAGE:$VERSION" .
-            sudo podman push "$IMAGE:$VERSION"
+            echo "PUSH_IMAGE=true" >>"$GITHUB_ENV"
           fi
 
       - name: Build the qcow2
@@ -161,12 +165,27 @@ jobs:
           qcow2="atelieros-$VERSION.qcow2"
           size=$(stat -c %s "$qcow2")
           echo "$qcow2 is $size bytes"
-          echo "qcow2 size: $size bytes" >>"$GITHUB_STEP_SUMMARY"
+          percent=$((size * 100 / MAX_ASSET_BYTES))
+          echo "qcow2 size: $size bytes ($percent% of GitHub's 2 GiB release-asset limit)" >>"$GITHUB_STEP_SUMMARY"
           if [ "$size" -ge "$MAX_ASSET_BYTES" ]; then
             echo "::error::$qcow2 is $size bytes, over GitHub's 2 GiB release-asset limit; see the open question on ATE-1"
             exit 1
           fi
+          if [ "$size" -ge "$WARN_ASSET_BYTES" ]; then
+            echo "::warning::$qcow2 is $size bytes, $percent% of GitHub's 2 GiB release-asset limit"
+          fi
           sha256sum "$qcow2" >"$qcow2.sha256"
+
+      - name: Push the tag and the versioned image
+        if: env.BUMP != 'dev'
+        run: |
+          if [ "$NEW_TAG" = true ]; then
+            git tag "$VERSION"
+            git push origin "$VERSION"
+          fi
+          if [ "$PUSH_IMAGE" = true ]; then
+            sudo podman push "$IMAGE:$VERSION"
+          fi
 
       - name: Move stable
         if: env.BUMP != 'dev'
