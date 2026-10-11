@@ -64,23 +64,26 @@ To check a qcow2, run `mise run boot-test <qcow2>`. It boots a throwaway copy in
 
 ## Setting up a new machine
 
-A new machine sets itself up the first time its user logs in interactively, over SSH or at the console. `atelieros-setup` gets one thing from the owner, a GitHub login. The owner's dotfiles (`jeremytondo/dotfiles`) do everything else. Setup runs these steps:
+A new machine sets itself up the first time its user logs in interactively, over SSH or at the console. `atelieros-setup` gets two things from the owner: a GitHub login and the GitHub repository that holds their dotfiles, a mise setup repository. The dotfiles do everything else. Setup runs these steps:
 
 1. It installs mise in the home directory with mise's official installer, so `mise self-update` works.
 2. It installs gh through mise. The dotfiles' `gh = "latest"` then uses this same installation.
 3. It logs gh in to GitHub.
-4. It turns on linger, so the dotfile history watcher runs without a login session.
-5. It sets the login shell to zsh.
-6. It adopts the dotfiles with `mise bootstrap --adopt jeremytondo/dotfiles --take-remote-all`, which also installs the tools they list. Where a starter file differs, such as Fedora's `~/.zshrc` or gh's `config.yml`, the dotfiles' version replaces it. On a machine that already adopted them, setup runs `mise bootstrap` instead.
-7. It records that setup is done, in `~/.local/state/atelieros/setup-done`, and starts a zsh login shell.
+4. It asks for the dotfiles repository, as `OWNER/REPO` or a URL, and checks that it exists. It suggests `<your login>/dotfiles` when there is one, so Enter accepts it. The answer is kept in `~/.local/state/atelieros/dotfiles` in case setup has to start again.
+5. It turns on linger, so the dotfile history watcher runs without a login session.
+6. It sets the login shell to zsh.
+7. It adopts the dotfiles with `mise bootstrap --adopt <repo> --take-remote-all`, which also installs the tools they list. Where a starter file differs, such as Fedora's `~/.zshrc` or gh's `config.yml`, the dotfiles' version replaces it. On a machine that already adopted them, setup runs `mise bootstrap` instead.
+8. It records that setup is done, in `~/.local/state/atelieros/setup-done`, and starts a zsh login shell.
 
 On bare metal, setup shows a QR code for GitHub's device login, and a one-time code. Scan the QR code with your phone, enter the code and approve. Setup then continues on its own. If the code expires first, setup offers a new one.
 
-A VM can be set up with no prompts by handing it the workstation's gh login:
+A VM can be set up with no prompts by handing it the workstation's gh login and naming the repository:
 
 ```sh
-gh auth token | ssh <vm> atelieros-setup --token-stdin
+gh auth token | ssh <vm> atelieros-setup --token-stdin --dotfiles jeremytondo/dotfiles
 ```
+
+`--dotfiles` also skips the question in an interactive run. Without a terminal to ask on, setup needs it, and stops before changing anything if it's missing.
 
 Setup never accepts a token as an argument or an environment variable, and never prints one. The token is stored only in gh's login file, `~/.config/gh/hosts.yml`.
 

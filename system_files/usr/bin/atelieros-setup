@@ -3,19 +3,23 @@
 # owner's dotfiles, which bring the tools and everything else. The login hook
 # in /etc/profile.d starts it on each interactive login until it has finished.
 #
-# Usage:
-#   atelieros-setup                 log in to GitHub by scanning a QR code
-#   atelieros-setup --token-stdin   log in with a gh token read from standard
-#                                   input, with no prompts:
-#                                   gh auth token | ssh <host> atelieros-setup --token-stdin
+# Usage: atelieros-setup [--dotfiles OWNER/REPO] [--token-stdin]
+#
+#   --dotfiles OWNER/REPO  the GitHub repository to adopt the dotfiles from.
+#                          Without it, setup asks.
+#   --token-stdin          log in with a gh token read from standard input,
+#                          rather than by scanning a QR code. Setup then asks
+#                          nothing, so it needs --dotfiles too:
+#     gh auth token | ssh <host> atelieros-setup --token-stdin --dotfiles OWNER/REPO
 #
 # Each step is skipped when its result is already there, so a run that failed
 # or was interrupted can simply run again.
 set -uo pipefail
 
-dotfiles=jeremytondo/dotfiles
 state=$HOME/.local/state/atelieros
 marker=$state/setup-done
+# The dotfiles repository, kept for a run that has to start again.
+dotfiles_file=$state/dotfiles
 mise=$HOME/.local/bin/mise
 zsh=/usr/bin/zsh
 user=$(id -un)
@@ -24,23 +28,33 @@ user=$(id -un)
 gh_client_id=178c6fc778ccc68e1d6a
 gh_scopes="repo read:org gist"
 
+usage() {
+    echo "usage: atelieros-setup [--dotfiles OWNER/REPO] [--token-stdin]" >&2
+    exit 2
+}
+
 token_stdin=0
+dotfiles=""
 gh=""
 # Set by the login hook: this process replaced the login shell.
 login=0
-for arg; do
-    case $arg in
+while [ $# -gt 0 ]; do
+    case $1 in
         --token-stdin) token_stdin=1 ;;
+        --dotfiles)
+            [ $# -ge 2 ] || usage
+            dotfiles=$2
+            shift
+            ;;
+        --dotfiles=*) dotfiles=${1#*=} ;;
         --login) login=1 ;;
         -h | --help)
             sed -n '2,/^$/s/^# \{0,1\}//p' "$0"
             exit 0
             ;;
-        *)
-            echo "usage: atelieros-setup [--token-stdin]" >&2
-            exit 2
-            ;;
+        *) usage ;;
     esac
+    shift
 done
 
 # A run that hasn't finished. From the login hook, end in a plain login shell
@@ -274,6 +288,39 @@ adopted() {
         && [ -e "$HOME/.config/mise/config.toml" ]
 }
 
+# GitHub's name for a repository given as OWNER/REPO or a URL, if it exists.
+repo_name() {
+    "$gh" repo view "$1" --json nameWithOwner --jq .nameWithOwner
+}
+
+# The repository comes from --dotfiles, an earlier run, or the owner. It's
+# checked once gh is logged in, so a mistyped name stops setup here.
+choose_dotfiles() {
+    local suggestion reply
+    if adopted; then
+        already "the dotfiles are adopted"
+        return
+    fi
+    if [ -z "$dotfiles" ] && [ -s "$dotfiles_file" ]; then
+        dotfiles=$(<"$dotfiles_file")
+        already "using $dotfiles, chosen earlier"
+    fi
+    if [ -n "$dotfiles" ]; then
+        dotfiles=$(repo_name "$dotfiles") || return
+    else
+        # The owner's own dotfiles repository, if there is one.
+        if suggestion=$("$gh" api user --jq '.login + "/dotfiles"' 2>/dev/null); then
+            suggestion=$(repo_name "$suggestion" 2>/dev/null)
+        fi
+        while [ -z "$dotfiles" ]; do
+            read -r -p "Dotfiles repository (OWNER/REPO)${suggestion:+ [$suggestion]}: " reply || return 1
+            reply=${reply:-$suggestion}
+            [ -n "$reply" ] && dotfiles=$(repo_name "$reply")
+        done
+    fi
+    printf '%s\n' "$dotfiles" >"$dotfiles_file"
+}
+
 # A fresh machine's starter files, such as ~/.zshrc and gh's config.yml, differ
 # from the dotfiles. --take-remote-all replaces them, saving each one first.
 # mise gives its own git commands a credential helper that reads gh's login
@@ -287,10 +334,17 @@ adopt_dotfiles() {
     fi
 }
 
+# With no terminal there's no one to ask, so stop before changing anything.
+if [ -z "$dotfiles" ] && [ ! -s "$dotfiles_file" ] && ! adopted && [ ! -t 0 ]; then
+    echo "atelieros-setup: name the dotfiles repository with --dotfiles OWNER/REPO" >&2
+    exit 2
+fi
+
 step "Install mise" install_mise
 step "Install gh" install_gh
 step "Log in to GitHub" log_in
 unset token
+step "Choose the dotfiles" choose_dotfiles
 step "Turn on linger" enable_linger
 step "Set the login shell to zsh" set_shell
 step "Adopt the dotfiles" adopt_dotfiles
