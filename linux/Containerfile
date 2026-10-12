@@ -70,8 +70,8 @@ RUN systemctl enable firewalld tailscaled \
 
 # Release marker: IMAGE_VERSION in os-release, and the OCI version label
 # that `bootc status` shows.
-RUN printf 'IMAGE_ID=atelieros\nIMAGE_VERSION=%s\n' "$VERSION" >> /usr/lib/os-release
-LABEL org.opencontainers.image.title="AtelierOS" \
+RUN printf 'IMAGE_ID=atelier-linux\nIMAGE_VERSION=%s\n' "$VERSION" >> /usr/lib/os-release
+LABEL org.opencontainers.image.title="Atelier for Linux" \
       org.opencontainers.image.source="https://github.com/jeremytondo/atelier" \
       org.opencontainers.image.version="$VERSION" \
       org.opencontainers.image.revision="$REVISION"

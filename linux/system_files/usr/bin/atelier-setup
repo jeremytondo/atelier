@@ -3,20 +3,20 @@
 # owner's dotfiles, which bring the tools and everything else. The login hook
 # in /etc/profile.d starts it on each interactive login until it has finished.
 #
-# Usage: atelieros-setup [--dotfiles OWNER/REPO] [--token-stdin]
+# Usage: atelier-setup [--dotfiles OWNER/REPO] [--token-stdin]
 #
 #   --dotfiles OWNER/REPO  the GitHub repository to adopt the dotfiles from.
 #                          Without it, setup asks.
 #   --token-stdin          log in with a gh token read from standard input,
 #                          rather than by scanning a QR code. Setup then asks
 #                          nothing, so it needs --dotfiles too:
-#     gh auth token | ssh <host> atelieros-setup --token-stdin --dotfiles OWNER/REPO
+#     gh auth token | ssh <host> atelier-setup --token-stdin --dotfiles OWNER/REPO
 #
 # Each step is skipped when its result is already there, so a run that failed
 # or was interrupted can simply run again.
 set -uo pipefail
 
-state=$HOME/.local/state/atelieros
+state=$HOME/.local/state/atelier
 marker=$state/setup-done
 # The dotfiles repository, kept for a run that has to start again.
 dotfiles_file=$state/dotfiles
@@ -29,7 +29,7 @@ gh_client_id=178c6fc778ccc68e1d6a
 gh_scopes="repo read:org gist"
 
 usage() {
-    echo "usage: atelieros-setup [--dotfiles OWNER/REPO] [--token-stdin]" >&2
+    echo "usage: atelier-setup [--dotfiles OWNER/REPO] [--token-stdin]" >&2
     exit 2
 }
 
@@ -61,9 +61,9 @@ done
 # rather than closing the session.
 give_up() {
     if [ "$login" = 1 ]; then
-        echo "Setup starts again at your next login, or run atelieros-setup." >&2
+        echo "Setup starts again at your next login, or run atelier-setup." >&2
         exec 9>&-
-        export ATELIEROS_SETUP_SKIP=1
+        export ATELIER_SETUP_SKIP=1
         local shell
         shell=$(getent passwd "$user" | cut -d: -f7)
         exec "${shell:-/bin/bash}" -l
@@ -73,7 +73,7 @@ give_up() {
 trap 'echo; echo "Setup interrupted." >&2; give_up 130' INT
 
 if [ "$(id -u)" = 0 ]; then
-    echo "Run atelieros-setup as your own user, not root." >&2
+    echo "Run atelier-setup as your own user, not root." >&2
     exit 1
 fi
 
@@ -111,7 +111,7 @@ step() {
     shift
     echo "==> $name"
     if ! "$@"; then
-        echo "atelieros-setup: failed: $name" >&2
+        echo "atelier-setup: failed: $name" >&2
         give_up
     fi
 }
@@ -336,7 +336,7 @@ adopt_dotfiles() {
 
 # With no terminal there's no one to ask, so stop before changing anything.
 if [ -z "$dotfiles" ] && [ ! -s "$dotfiles_file" ] && ! adopted && [ ! -t 0 ]; then
-    echo "atelieros-setup: name the dotfiles repository with --dotfiles OWNER/REPO" >&2
+    echo "atelier-setup: name the dotfiles repository with --dotfiles OWNER/REPO" >&2
     exit 2
 fi
 

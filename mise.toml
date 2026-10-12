@@ -1,26 +1,26 @@
-# Tasks are named after the part of Atelier they belong to: os: for the
-# image in os/.
+# Tasks are named after the part of Atelier they belong to: linux: for the
+# image in linux/.
 
-[tasks."os:build"]
-description = "Build the image locally as localhost/atelieros:local (runs bootc container lint)"
-run = "$(command -v podman || command -v docker) build --file os/Containerfile --tag localhost/atelieros:local os"
+[tasks."linux:build"]
+description = "Build the image locally as localhost/atelier-linux:local (runs bootc container lint)"
+run = "$(command -v podman || command -v docker) build --file linux/Containerfile --tag localhost/atelier-linux:local linux"
 
-[tasks."os:boot-test"]
-description = "Boot a qcow2 in qemu with cloud-init and check it: mise run os:boot-test <qcow2>"
-run = "os/scripts/boot-test"
+[tasks."linux:boot-test"]
+description = "Boot a qcow2 in qemu with cloud-init and check it: mise run linux:boot-test <qcow2>"
+run = "linux/scripts/boot-test"
 
-[tasks."os:release:patch"]
-description = "Dispatch the OS release workflow to cut a patch release"
-run = "gh workflow run os-release.yml -f bump=patch"
+[tasks."linux:release:patch"]
+description = "Dispatch the Linux release workflow to cut a patch release"
+run = "gh workflow run linux-release.yml -f bump=patch"
 
-[tasks."os:release:minor"]
-description = "Dispatch the OS release workflow to cut a minor release"
-run = "gh workflow run os-release.yml -f bump=minor"
+[tasks."linux:release:minor"]
+description = "Dispatch the Linux release workflow to cut a minor release"
+run = "gh workflow run linux-release.yml -f bump=minor"
 
-[tasks."os:release:major"]
-description = "Dispatch the OS release workflow to cut a major release"
-run = "gh workflow run os-release.yml -f bump=major"
+[tasks."linux:release:major"]
+description = "Dispatch the Linux release workflow to cut a major release"
+run = "gh workflow run linux-release.yml -f bump=major"
 
-[tasks."os:release:dev"]
+[tasks."linux:release:dev"]
 description = "Rebuild :dev from main (pass --ref <branch> to build a pushed branch)"
-run = "gh workflow run os-release.yml -f bump=dev"
+run = "gh workflow run linux-release.yml -f bump=dev"

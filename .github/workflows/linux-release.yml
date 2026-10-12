@@ -1,9 +1,9 @@
-name: OS release
+name: Linux release
 
 # One workflow, one input, following ATC. patch/minor/major cut a production
-# release: the next version is computed from the remote's tags, the commit is
-# tagged, and the image is built from it and pushed as :vX.Y.Z and :stable,
-# with a GitHub Release carrying the qcow2. dev rebuilds the dispatched ref
+# release: the next version is computed from the remote's linux/ tags, the
+# commit is tagged linux/vX.Y.Z, and the image is built from it and pushed as
+# :vX.Y.Z and :stable, with a GitHub Release carrying the qcow2. dev rebuilds the dispatched ref
 # and pushes the moving :dev tag only. The weekly schedule cuts a patch
 # release from main so Fedora's updates reach :stable.
 #
@@ -28,7 +28,7 @@ on:
   schedule:
     - cron: "23 4 * * 1"
 
-concurrency: os-release
+concurrency: linux-release
 
 permissions:
   contents: read
@@ -38,7 +38,7 @@ defaults:
     shell: bash
 
 env:
-  IMAGE: ghcr.io/jeremytondo/atelieros
+  IMAGE: ghcr.io/jeremytondo/atelier-linux
   # Scheduled runs have no inputs.
   BUMP: ${{ inputs.bump || 'patch' }}
   # image-builder writes a zlib-compressed qcow2, which Proxmox imports like
@@ -72,7 +72,7 @@ jobs:
           sudo podman build \
             --build-arg VERSION="dev-${GITHUB_SHA:0:12}" \
             --build-arg REVISION="$GITHUB_SHA" \
-            --file os/Containerfile --tag "$IMAGE:dev" os
+            --file linux/Containerfile --tag "$IMAGE:dev" linux
           sudo podman push "$IMAGE:dev"
 
       - name: Free disk space for the qcow2 build
@@ -87,12 +87,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           git fetch --tags --force origin
-          tags=$(git tag --list 'v*' | { grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true; } | sort -V)
+          tags=$(git tag --list 'linux/v*' | { grep -E '^linux/v[0-9]+\.[0-9]+\.[0-9]+$' || true; } | sort -V)
           latest=$(tail -n1 <<<"$tags")
+          # Up to v0.1.7 the image was AtelierOS, tagged plain vX.Y.Z. The
+          # first linux/ release continues its version chain.
+          legacy=$(git tag --list 'v*' | { grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true; } | sort -V | tail -n1)
 
           # A complete release has the qcow2 and its checksum. Resume a newest
           # tag without one rather than bumping past it.
-          next=""
+          tag=""
           if [ -n "$latest" ]; then
             assets=$(gh release view "$latest" --json assets --jq '.assets | length' 2>/dev/null || echo 0)
             if [ "$assets" -lt 2 ]; then
@@ -101,31 +104,38 @@ jobs:
                 echo "::error::$latest has no complete release and points at $tagged, not this ref's head $GITHUB_SHA; re-dispatch from that commit, or delete the tag to abandon that version"
                 exit 1
               fi
-              next="$latest"
-              echo "resuming $next: its tag exists without a complete release"
+              tag="$latest"
+              echo "resuming $tag: its tag exists without a complete release"
             fi
           fi
           previous=""
-          if [ -z "$next" ]; then
-            previous=$latest
-            IFS=. read -r major minor patch <<<"${latest:-v0.0.0}"
+          if [ -z "$tag" ]; then
+            previous=${latest:-$legacy}
+            IFS=. read -r major minor patch <<<"${previous:-v0.0.0}"
+            major=${major#linux/v}
             major=${major#v}
             case "$BUMP" in
-              major) next="v$((major + 1)).0.0" ;;
-              minor) next="v${major}.$((minor + 1)).0" ;;
-              patch) next="v${major}.${minor}.$((patch + 1))" ;;
+              major) tag="linux/v$((major + 1)).0.0" ;;
+              minor) tag="linux/v${major}.$((minor + 1)).0" ;;
+              patch) tag="linux/v${major}.${minor}.$((patch + 1))" ;;
             esac
             # The first production release is v0.1.0 whatever the bump.
             # v1.0.0 is cut deliberately, with release:major.
-            [ -z "$latest" ] && next="v0.1.0"
-            echo "cutting $next (previous: ${latest:-none}) from $GITHUB_SHA"
+            [ -z "$previous" ] && tag="linux/v0.1.0"
+            echo "cutting $tag (previous: ${previous:-none}) from $GITHUB_SHA"
             # The tag is pushed once the qcow2 has passed its size check.
             echo "NEW_TAG=true" >>"$GITHUB_ENV"
           else
-            previous=$(tail -n2 <<<"$tags" | head -n1 | grep -vx "$next" || true)
+            previous=$(tail -n2 <<<"$tags" | head -n1 | grep -vx "$tag" || true)
+            previous=${previous:-$legacy}
           fi
-          echo "VERSION=$next" >>"$GITHUB_ENV"
-          echo "PREVIOUS=$previous" >>"$GITHUB_ENV"
+          # Git tags and GitHub Releases carry the linux/ prefix. The image
+          # tag and the version a machine reports don't.
+          {
+            echo "TAG=$tag"
+            echo "VERSION=${tag#linux/}"
+            echo "PREVIOUS=$previous"
+          } >>"$GITHUB_ENV"
 
       - name: Build the versioned image
         if: env.BUMP != 'dev'
@@ -139,7 +149,7 @@ jobs:
             sudo podman build \
               --build-arg VERSION="$VERSION" \
               --build-arg REVISION="$GITHUB_SHA" \
-              --file os/Containerfile --tag "$IMAGE:$VERSION" os
+              --file linux/Containerfile --tag "$IMAGE:$VERSION" linux
             echo "PUSH_IMAGE=true" >>"$GITHUB_ENV"
           fi
 
@@ -156,13 +166,13 @@ jobs:
             -v /var/lib/containers/storage:/var/lib/containers/storage \
             "$IMAGE_BUILDER" build \
             --output-dir /output \
-            --output-name "atelieros-$VERSION" \
+            --output-name "atelier-linux-$VERSION" \
             --bootc-ref "$IMAGE:stable" \
             --bootc-default-fs xfs \
             qcow2
           sudo chown -R "$(id -u):$(id -g)" output
           cd output
-          qcow2="atelieros-$VERSION.qcow2"
+          qcow2="atelier-linux-$VERSION.qcow2"
           size=$(stat -c %s "$qcow2")
           echo "$qcow2 is $size bytes"
           percent=$((size * 100 / MAX_ASSET_BYTES))
@@ -180,8 +190,8 @@ jobs:
         if: env.BUMP != 'dev'
         run: |
           if [ "$NEW_TAG" = true ]; then
-            git tag "$VERSION"
-            git push origin "$VERSION"
+            git tag "$TAG"
+            git push origin "$TAG"
           fi
           if [ "$PUSH_IMAGE" = true ]; then
             sudo podman push "$IMAGE:$VERSION"
@@ -196,15 +206,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          base=$(sed -n 's/^FROM //p' os/Containerfile | head -n1)
+          base=$(sed -n 's/^FROM //p' linux/Containerfile | head -n1)
           digest=$(sudo skopeo inspect --format '{{.Digest}}' "docker://$IMAGE:$VERSION")
           changes="First release."
           if [ -n "$PREVIOUS" ]; then
-            changes="Changes since $PREVIOUS: https://github.com/$GITHUB_REPOSITORY/compare/$PREVIOUS...$VERSION"
+            changes="Changes since $PREVIOUS: https://github.com/$GITHUB_REPOSITORY/compare/$PREVIOUS...$TAG"
           fi
           # shellcheck disable=SC2016 # the notes quote literal backticks
           printf -v notes '%s\n' \
-            "AtelierOS $VERSION, built from \`$base\`." \
+            "Atelier for Linux $VERSION, built from \`$base\`." \
             '' \
             "Image: \`$IMAGE:$VERSION\` (\`$digest\`)" \
             '' \
@@ -217,10 +227,10 @@ jobs:
             'The qcow2 is the disk image for new VMs. It has no user, SSH key or hostname; cloud-init provides them.' \
             '' \
             "$changes"
-          files=("output/atelieros-$VERSION.qcow2" "output/atelieros-$VERSION.qcow2.sha256")
-          if gh release view "$VERSION" >/dev/null 2>&1; then
-            gh release upload "$VERSION" "${files[@]}" --clobber
+          files=("output/atelier-linux-$VERSION.qcow2" "output/atelier-linux-$VERSION.qcow2.sha256")
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${files[@]}" --clobber
           else
-            gh release create "$VERSION" "${files[@]}" --verify-tag \
-              --title "AtelierOS $VERSION" --notes "$notes"
+            gh release create "$TAG" "${files[@]}" --verify-tag \
+              --title "Atelier for Linux $VERSION" --notes "$notes"
           fi
