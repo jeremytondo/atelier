@@ -72,7 +72,7 @@ RUN systemctl enable firewalld tailscaled \
 # that `bootc status` shows.
 RUN printf 'IMAGE_ID=atelieros\nIMAGE_VERSION=%s\n' "$VERSION" >> /usr/lib/os-release
 LABEL org.opencontainers.image.title="AtelierOS" \
-      org.opencontainers.image.source="https://github.com/jeremytondo/atelieros" \
+      org.opencontainers.image.source="https://github.com/jeremytondo/atelier" \
       org.opencontainers.image.version="$VERSION" \
       org.opencontainers.image.revision="$REVISION"
 
