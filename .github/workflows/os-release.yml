@@ -1,4 +1,4 @@
-name: Release
+name: OS release
 
 # One workflow, one input, following ATC. patch/minor/major cut a production
 # release: the next version is computed from the remote's tags, the commit is
@@ -28,7 +28,7 @@ on:
   schedule:
     - cron: "23 4 * * 1"
 
-concurrency: release
+concurrency: os-release
 
 permissions:
   contents: read
@@ -72,7 +72,7 @@ jobs:
           sudo podman build \
             --build-arg VERSION="dev-${GITHUB_SHA:0:12}" \
             --build-arg REVISION="$GITHUB_SHA" \
-            --tag "$IMAGE:dev" .
+            --file os/Containerfile --tag "$IMAGE:dev" os
           sudo podman push "$IMAGE:dev"
 
       - name: Free disk space for the qcow2 build
@@ -139,7 +139,7 @@ jobs:
             sudo podman build \
               --build-arg VERSION="$VERSION" \
               --build-arg REVISION="$GITHUB_SHA" \
-              --tag "$IMAGE:$VERSION" .
+              --file os/Containerfile --tag "$IMAGE:$VERSION" os
             echo "PUSH_IMAGE=true" >>"$GITHUB_ENV"
           fi
 
@@ -196,7 +196,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          base=$(sed -n 's/^FROM //p' Containerfile | head -n1)
+          base=$(sed -n 's/^FROM //p' os/Containerfile | head -n1)
           digest=$(sudo skopeo inspect --format '{{.Digest}}' "docker://$IMAGE:$VERSION")
           changes="First release."
           if [ -n "$PREVIOUS" ]; then

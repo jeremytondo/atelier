@@ -1,23 +1,26 @@
-[tasks.build]
+# Tasks are named after the part of Atelier they belong to: os: for the
+# image in os/.
+
+[tasks."os:build"]
 description = "Build the image locally as localhost/atelieros:local (runs bootc container lint)"
-run = "$(command -v podman || command -v docker) build --file Containerfile --tag localhost/atelieros:local ."
+run = "$(command -v podman || command -v docker) build --file os/Containerfile --tag localhost/atelieros:local os"
 
-[tasks.boot-test]
-description = "Boot a qcow2 in qemu with cloud-init and check it: mise run boot-test <qcow2>"
-run = "scripts/boot-test"
+[tasks."os:boot-test"]
+description = "Boot a qcow2 in qemu with cloud-init and check it: mise run os:boot-test <qcow2>"
+run = "os/scripts/boot-test"
 
-[tasks."release:patch"]
-description = "Dispatch the release workflow to cut a patch release"
-run = "gh workflow run release.yml -f bump=patch"
+[tasks."os:release:patch"]
+description = "Dispatch the OS release workflow to cut a patch release"
+run = "gh workflow run os-release.yml -f bump=patch"
 
-[tasks."release:minor"]
-description = "Dispatch the release workflow to cut a minor release"
-run = "gh workflow run release.yml -f bump=minor"
+[tasks."os:release:minor"]
+description = "Dispatch the OS release workflow to cut a minor release"
+run = "gh workflow run os-release.yml -f bump=minor"
 
-[tasks."release:major"]
-description = "Dispatch the release workflow to cut a major release"
-run = "gh workflow run release.yml -f bump=major"
+[tasks."os:release:major"]
+description = "Dispatch the OS release workflow to cut a major release"
+run = "gh workflow run os-release.yml -f bump=major"
 
-[tasks."release:dev"]
+[tasks."os:release:dev"]
 description = "Rebuild :dev from main (pass --ref <branch> to build a pushed branch)"
-run = "gh workflow run release.yml -f bump=dev"
+run = "gh workflow run os-release.yml -f bump=dev"

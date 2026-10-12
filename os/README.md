@@ -34,15 +34,15 @@ Production images report `vX.Y.Z`. `dev` images report `dev-<commit>`.
 
 ## Releases
 
-Releases are cut by one GitHub Actions workflow, dispatched from mise:
+Releases are cut by one GitHub Actions workflow, `OS release`, dispatched from mise:
 
 | Command | Result |
 | -- | -- |
-| `mise run release:dev` | Builds `main` and pushes it as `:dev`. |
-| `mise run release:dev --ref <branch>` | Builds a pushed branch as `:dev`. |
-| `mise run release:patch` | Cuts the next `vX.Y.Z` patch release from `main`. |
-| `mise run release:minor` | Cuts the next minor release. |
-| `mise run release:major` | Cuts the next major release. |
+| `mise run os:release:dev` | Builds `main` and pushes it as `:dev`. |
+| `mise run os:release:dev --ref <branch>` | Builds a pushed branch as `:dev`. |
+| `mise run os:release:patch` | Cuts the next `vX.Y.Z` patch release from `main`. |
+| `mise run os:release:minor` | Cuts the next minor release. |
+| `mise run os:release:major` | Cuts the next major release. |
 
 A production release does the following:
 
@@ -60,11 +60,11 @@ A production release rebuilds the image from its commit rather than retagging `:
 
 Production tags, images and releases are never moved, edited or deleted. If a production run fails, re-run it: it resumes the same version rather than skipping to the next one.
 
-Every Monday the workflow cuts a patch release from `main`, so Fedora's updates reach `:stable` without anyone remembering. GitHub disables scheduled workflows after 60 days without repository activity. If the weekly releases stop, re-enable the workflow in the Actions tab.
+Every Monday the workflow cuts a patch release from `main`, so Fedora's updates reach `:stable` without anyone remembering. GitHub disables scheduled workflows after 60 days without repository activity. If the weekly releases stop, re-enable `OS release` in the Actions tab.
 
-To check the image locally before releasing, run `mise run build`. It builds with podman or docker and runs `bootc container lint`.
+To check the image locally before releasing, run `mise run os:build`. It builds with podman or docker and runs `bootc container lint`.
 
-To check a qcow2, run `mise run boot-test <qcow2>`. It boots a throwaway copy in qemu the way Proxmox would, then checks over SSH that it tracks `:stable`, that cloud-init finished cleanly, that the root grew to fill the disk, and the image's settings. It also checks that SSH commands and scp never start first-login setup, while a login with a terminal does. It needs qemu with KVM, xorriso and jq.
+To check a qcow2, run `mise run os:boot-test <qcow2>`. It boots a throwaway copy in qemu the way Proxmox would, then checks over SSH that it tracks `:stable`, that cloud-init finished cleanly, that the root grew to fill the disk, and the image's settings. It also checks that SSH commands and scp never start first-login setup, while a login with a terminal does. It needs qemu with KVM, xorriso and jq.
 
 ## Setting up a new machine
 
@@ -167,10 +167,10 @@ sudo systemctl reboot
 OS packages are never installed on a running machine. dnf refuses to install on bootc anyway.
 
 1. Add the package to the `dnf -y install` list in the `Containerfile`.
-2. Run `mise run build` to check that it builds and lints.
-3. Commit and push, then run `mise run release:dev`.
+2. Run `mise run os:build` to check that it builds and lints.
+3. Commit and push, then run `mise run os:release:dev`.
 4. Switch a machine to `:dev` and check the change.
-5. Run `mise run release:patch`, and switch the test machine back to `:stable`.
+5. Run `mise run os:release:patch`, and switch the test machine back to `:stable`.
 
 Weak dependencies are left out of the image, since on a headless machine they're desktop pieces such as PipeWire and Vulkan drivers. If a package needs one of them, add it to the `Containerfile` by name. Watch the qcow2 size in the release summary: GitHub refuses release assets over 2 GiB.
 
@@ -180,18 +180,20 @@ For a one-off tool, use a distrobox container instead, for example an Arch conta
 
 A new Fedora major version is a change to the base tag in the `Containerfile`, for example from `fedora-bootc:44` to `fedora-bootc:45`.
 
-1. Change the tag, and run `mise run build`.
+1. Change the tag, and run `mise run os:build`.
 2. Release it to `:dev` and test it on one machine.
-3. Cut a production release. `mise run release:minor` makes the jump visible in the version number.
+3. Cut a production release. `mise run os:release:minor` makes the jump visible in the version number.
 
 Machines receive it through the normal update path. If the new version misbehaves, `sudo bootc rollback` returns to the previous Fedora.
 
-## Repository layout
+## Files
+
+Paths are from the repository root.
 
 | Path | Purpose |
 | -- | -- |
-| `Containerfile` | The image: packages, configuration and the release marker |
-| `system_files/` | Files copied into the image's root, including `atelieros-setup` and its login hook |
-| `mise.toml` | The build, boot-test and release tasks |
-| `scripts/boot-test` | The qemu boot test behind `mise run boot-test` |
-| `.github/workflows/release.yml` | The release workflow and its weekly schedule |
+| `os/Containerfile` | The image: packages, configuration and the release marker |
+| `os/system_files/` | Files copied into the image's root, including `atelieros-setup` and its login hook |
+| `os/scripts/boot-test` | The qemu boot test behind `mise run os:boot-test` |
+| `mise.toml` | The `os:` build, boot-test and release tasks |
+| `.github/workflows/os-release.yml` | The release workflow and its weekly schedule |
