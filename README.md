@@ -6,7 +6,7 @@ This repository holds Atelier's parts. Each part has its own directory, README a
 
 | Part | Directory | What it is |
 | -- | -- | -- |
-| AtelierOS | [`os/`](os/README.md) | The image-based Linux system for workstations and VMs, built on Fedora bootc |
+| Atelier for Linux | [`linux/`](linux/README.md) | The image-based Linux system for workstations and VMs, built on Fedora bootc |
 
 The `atelier` command and the Mac app will move here as their own parts. Dotfiles stay in their own private repository, since they're personal settings rather than part of Atelier.
 
@@ -15,7 +15,7 @@ The `atelier` command and the Mac app will move here as their own parts. Dotfile
 Tasks are run with [mise](https://mise.jdx.dev) from anywhere in the repository, and are named after their part. Run `mise tasks` to list them.
 
 ```sh
-mise run os:build
+mise run linux:build
 ```
 
 Each part's README describes its tasks.
