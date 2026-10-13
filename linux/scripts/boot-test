@@ -17,6 +17,10 @@ qcow2=$(realpath "${1:?usage: boot-test <qcow2>}")
 port=${BOOT_TEST_SSH_PORT:-2222}
 disk_size=20G
 stable=ghcr.io/jeremytondo/atelier-linux:stable
+# The VM's user. Real setup adopts the dotfiles, which declare their owner's
+# account and group, so it runs as the host's user.
+user=tester
+[ -n "${BOOT_TEST_DOTFILES-}" ] && user=$(id -un)
 
 work=$(mktemp -d)
 cleanup() {
@@ -35,7 +39,7 @@ cat >"$work/seed/user-data" <<EOF
 hostname: boot-test
 manage_etc_hosts: true
 fqdn: boot-test.local
-user: tester
+user: $user
 ssh_authorized_keys:
   - $(cat "$work/key.pub")
 chpasswd:
@@ -58,7 +62,7 @@ qemu-system-x86_64 \
 ssh_opts=(-i "$work/key" -o BatchMode=yes -o ConnectTimeout=5
     -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR)
 vm() {
-    ssh "${ssh_opts[@]}" -p "$port" tester@127.0.0.1 "$@"
+    ssh "${ssh_opts[@]}" -p "$port" "$user@127.0.0.1" "$@"
 }
 
 echo "Waiting for SSH on port $port"
@@ -123,7 +127,7 @@ check "atelier-setup" "$(vm command -v atelier-setup)" /usr/bin/atelier-setup
 check "setup without a terminal or --dotfiles stops" \
     "$(vm 'atelier-setup </dev/null >/dev/null 2>&1; echo $?')" 2
 echo scp-ok >"$work/scp-test"
-scp -q "${ssh_opts[@]}" -P "$port" "$work/scp-test" tester@127.0.0.1:
+scp -q "${ssh_opts[@]}" -P "$port" "$work/scp-test" "$user@127.0.0.1":
 check "scp is unaffected" "$(vm cat scp-test)" scp-ok
 check "commands don't start setup (no setup state or mise)" \
     "$(vm 'ls -d ~/.local/state/atelier ~/.local/bin/mise 2>/dev/null')" ""
@@ -138,7 +142,7 @@ echo "sentinel: atelier-setup $*"
 EOF
 # A session with a terminal. It types exit, in case setup doesn't start.
 tty_session() {
-    printf 'exit\n' | timeout 60 ssh "${ssh_opts[@]}" -p "$port" -tt tester@127.0.0.1 "$@" 2>/dev/null |
+    printf 'exit\n' | timeout 60 ssh "${ssh_opts[@]}" -p "$port" -tt "$user@127.0.0.1" "$@" 2>/dev/null |
         tr -d '\r' | grep -o 'sentinel: .*' || true
 }
 check "a login starts setup" "$(tty_session)" "sentinel: atelier-setup --login"
@@ -159,7 +163,7 @@ if [ -n "${BOOT_TEST_DOTFILES-}" ]; then
         failed=1
     fi
     check "setup is recorded as done" "$(vm 'test -e ~/.local/state/atelier/setup-done && echo yes')" yes
-    check "the login shell" "$(vm getent passwd tester | cut -d: -f7)" /usr/bin/zsh
+    check "the login shell" "$(vm getent passwd "$user" | cut -d: -f7)" /usr/bin/zsh
     core=$(vm .local/bin/mise exec -- atelier version 2>/dev/null || true)
     check "atelier version runs from the dotfiles' tools" "$([[ $core =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] && echo ok)" ok
     echo "      atelier ${core:-missing}"
