@@ -76,7 +76,7 @@ To run first-login setup for real as well, name the dotfiles repository:
 BOOT_TEST_DOTFILES=jeremytondo/dotfiles mise run linux:boot-test <qcow2>
 ```
 
-The VM then logs in with the host's gh login, adopts the dotfiles, and checks that `atelier version` runs from the tools they list. The dotfiles' history watcher may push from the VM until it stops.
+The VM's user then has the host's user name, since the dotfiles declare their owner's account. It logs in with the host's gh login, adopts the dotfiles, and checks that `atelier version` runs from the tools they list. The dotfiles' history watcher may push from the VM until it stops.
 
 ## Setting up a new machine
 
