@@ -24,13 +24,15 @@ On top of `quay.io/fedora/fedora-bootc:44`, which already has openssh-server, po
 
 cloud-init and qemu-guest-agent stay inactive on bare metal. Tailscale runs but joins the tailnet only when someone enrolls the machine.
 
-Check which version a machine runs with `bootc status`, or:
+Check which version a machine runs with `atelier version`, which also shows the Atelier core's version:
 
-```sh
-grep IMAGE_VERSION /etc/os-release
+```console
+$ atelier version
+Atelier Core   v0.1.0
+Atelier Linux  v0.2.1
 ```
 
-Production images report `vX.Y.Z`. `dev` images report `dev-<commit>`.
+Production images report `vX.Y.Z`. `dev` images report `dev-<commit>`. `bootc status` shows the image too, and `grep IMAGE_VERSION /etc/os-release` works before setup has installed the core.
 
 ## Releases
 
@@ -76,7 +78,7 @@ To run first-login setup for real as well, name the dotfiles repository:
 BOOT_TEST_DOTFILES=jeremytondo/dotfiles mise run linux:boot-test <qcow2>
 ```
 
-The VM's user then has the host's user name, since the dotfiles declare their owner's account. It logs in with the host's gh login, adopts the dotfiles, and checks that `atelier version` runs from the tools they list. The dotfiles' history watcher may push from the VM until it stops.
+The VM's user then has the host's user name, since the dotfiles declare their owner's account. It logs in with the host's gh login, adopts the dotfiles, and checks that `atelier version` runs from the tools they list and names the image. The dotfiles' history watcher may push from the VM until it stops.
 
 ## Setting up a new machine
 

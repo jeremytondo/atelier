@@ -12,16 +12,28 @@ import (
 )
 
 func TestVersion(t *testing.T) {
-	saved := version.Version
+	savedVersion, savedImage := version.Version, atelierLinux
+	t.Cleanup(func() { version.Version, atelierLinux = savedVersion, savedImage })
 	version.Version = "v1.2.3"
-	t.Cleanup(func() { version.Version = saved })
 
-	var stdout, stderr strings.Builder
-	if err := run(context.Background(), []string{"version"}, strings.NewReader(""), &stdout, &stderr); err != nil {
-		t.Fatal(err)
-	}
-	if got := stdout.String(); got != "v1.2.3\n" {
-		t.Errorf("version printed %q", got)
+	for name, tt := range map[string]struct {
+		image string
+		ok    bool
+		want  string
+	}{
+		"on Atelier Linux": {"v0.2.1", true, "Atelier Core   v1.2.3\nAtelier Linux  v0.2.1\n"},
+		"elsewhere":        {"", false, "Atelier Core  v1.2.3\n"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			atelierLinux = func() (string, bool) { return tt.image, tt.ok }
+			var stdout, stderr strings.Builder
+			if err := run(context.Background(), []string{"version"}, strings.NewReader(""), &stdout, &stderr); err != nil {
+				t.Fatal(err)
+			}
+			if got := stdout.String(); got != tt.want {
+				t.Errorf("version printed %q, want %q", got, tt.want)
+			}
+		})
 	}
 }
 

@@ -5,7 +5,7 @@ The Atelier core is the part of Atelier that holds its logic and connects the ot
 So far it does two things:
 
 - `atelier setup` sets up a Linux machine for its user: a GitHub login, then the owner's dotfiles. On Atelier for Linux, the image's `atelier-setup` bootstrap installs the core and runs it on first login. See [Setting up a new machine](../linux/README.md#setting-up-a-new-machine).
-- `atelier version` prints the version.
+- `atelier version` prints the versions of the parts of Atelier on the machine: the core, and on Atelier for Linux, the image.
 
 Run `atelier --help` for the details.
 
@@ -29,6 +29,7 @@ The Linux image never contains the core, so there's only ever one copy on the PA
 | `internal/setup` | Setting up a machine, step by step |
 | `internal/integrations/` | The programs and services the core drives: `mise`, `gh`, and GitHub's device login (`github`) |
 | `internal/command` | Running external programs |
+| `internal/system` | The machine the core runs on |
 | `internal/version` | The build's version |
 
 The logic lives in packages that know nothing about flags or terminal output, so later interfaces, such as a service or an API, don't need a rewrite.

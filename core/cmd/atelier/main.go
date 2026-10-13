@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 
+	"github.com/jeremytondo/atelier/core/internal/system"
 	"github.com/jeremytondo/atelier/core/internal/version"
 )
 
@@ -61,14 +63,36 @@ development environment.`,
 	return root
 }
 
+// atelierLinux is held in a variable so tests can replace the machine's own
+// image.
+var atelierLinux = system.AtelierLinux
+
 func newVersionCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
-		Short: "Print the atelier version",
+		Short: "Print the versions of the parts of Atelier on this machine",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, err := fmt.Fprintln(cmd.OutOrStdout(), version.String())
+			rows := [][2]string{{"Atelier Core", version.String()}}
+			if image, ok := atelierLinux(); ok {
+				rows = append(rows, [2]string{"Atelier Linux", image})
+			}
+			_, err := fmt.Fprint(cmd.OutOrStdout(), columns(rows))
 			return err
 		},
 	}
+}
+
+// columns lines up name and version pairs, two spaces apart.
+func columns(rows [][2]string) string {
+	width := 0
+	for _, row := range rows {
+		width = max(width, len(row[0]))
+	}
+	var out strings.Builder
+	for _, row := range rows {
+		line := fmt.Sprintf("%-*s  %s", width, row[0], row[1])
+		out.WriteString(strings.TrimRight(line, " ") + "\n")
+	}
+	return out.String()
 }

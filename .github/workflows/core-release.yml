@@ -121,7 +121,7 @@ jobs:
             tar -czf "../dist/atelier_${os}_${arch}.tar.gz" -C "$build" atelier
           done
           # The binary for this runner reports the version it was stamped with.
-          test "$("$RUNNER_TEMP/linux-amd64/atelier" version)" = "$VERSION"
+          test "$("$RUNNER_TEMP/linux-amd64/atelier" version | awk '/^Atelier Core / {print $3}')" = "$VERSION"
           cd ../dist
           sha256sum atelier_*.tar.gz >checksums.txt
           cat checksums.txt
