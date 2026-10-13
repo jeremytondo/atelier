@@ -164,9 +164,13 @@ if [ -n "${BOOT_TEST_DOTFILES-}" ]; then
     fi
     check "setup is recorded as done" "$(vm 'test -e ~/.local/state/atelier/setup-done && echo yes')" yes
     check "the login shell" "$(vm getent passwd "$user" | cut -d: -f7)" /usr/bin/zsh
-    core=$(vm .local/bin/mise exec -- atelier version 2>/dev/null || true)
+    atelier=$(vm .local/bin/mise exec -- atelier version 2>/dev/null || true)
+    printf '%s\n' "$atelier" | sed 's/^/      /'
+    core=$(awk '/^Atelier Core / {print $3}' <<<"$atelier")
     check "atelier version runs from the dotfiles' tools" "$([[ $core =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] && echo ok)" ok
-    echo "      atelier ${core:-missing}"
+    if [[ $qcow2 =~ atelier-linux-(.+)\.qcow2$ ]]; then
+        check "atelier version names the image" "$(awk '/^Atelier Linux / {print $3}' <<<"$atelier")" "${BASH_REMATCH[1]}"
+    fi
 fi
 
 if [ "$failed" -ne 0 ]; then
