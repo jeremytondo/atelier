@@ -1,0 +1,160 @@
+name: Core release
+
+# One workflow, one input, like Linux release. patch/minor/major cut a
+# production release: the next version is computed from the remote's core/
+# tags, the core is tested and built for Linux and macOS on amd64 and arm64,
+# the commit is tagged core/vX.Y.Z, and a GitHub Release carries the binaries.
+# mise installs the core from these releases, so they must be full releases
+# with the binaries attached: mise skips prereleases and releases without
+# assets.
+#
+# Production tags and releases are never moved, edited or deleted. A failed
+# run never advances the version chain: everything is built before the tag is
+# pushed, and once it is, re-running resumes the newest tag until its release
+# is complete.
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Cut a production release from this ref"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+concurrency: core-release
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  BUMP: ${{ inputs.bump }}
+  # os/arch pairs. Asset names leave out the version, so mise and
+  # releases/latest/download URLs find them by platform alone.
+  TARGETS: linux/amd64 linux/arm64 darwin/amd64 darwin/arm64
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518 # v4.2.5
+
+      - name: Test
+        run: mise run core:test
+
+      - name: Choose version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git fetch --tags --force origin
+          tags=$(git tag --list 'core/v*' | { grep -E '^core/v[0-9]+\.[0-9]+\.[0-9]+$' || true; } | sort -V)
+          latest=$(tail -n1 <<<"$tags")
+          read -ra targets <<<"$TARGETS"
+
+          # A complete release has a binary per target and checksums.txt.
+          # Resume a newest tag without one rather than bumping past it.
+          tag=""
+          if [ -n "$latest" ]; then
+            assets=$(gh release view "$latest" --json assets --jq '.assets | length' 2>/dev/null || echo 0)
+            if [ "$assets" -lt $((${#targets[@]} + 1)) ]; then
+              tagged=$(git rev-parse "${latest}^{commit}")
+              if [ "$tagged" != "$GITHUB_SHA" ]; then
+                echo "::error::$latest has no complete release and points at $tagged, not this ref's head $GITHUB_SHA; re-dispatch from that commit, or delete the tag to abandon that version"
+                exit 1
+              fi
+              tag="$latest"
+              echo "resuming $tag: its tag exists without a complete release"
+            fi
+          fi
+          previous=""
+          if [ -z "$tag" ]; then
+            previous=$latest
+            IFS=. read -r major minor patch <<<"${previous:-core/v0.0.0}"
+            major=${major#core/v}
+            case "$BUMP" in
+              major) tag="core/v$((major + 1)).0.0" ;;
+              minor) tag="core/v${major}.$((minor + 1)).0" ;;
+              patch) tag="core/v${major}.${minor}.$((patch + 1))" ;;
+            esac
+            # The first release is v0.1.0 whatever the bump. v1.0.0 is cut
+            # deliberately, with release:major.
+            [ -z "$previous" ] && tag="core/v0.1.0"
+            echo "cutting $tag (previous: ${previous:-none}) from $GITHUB_SHA"
+            # The tag is pushed once the binaries are built.
+            echo "NEW_TAG=true" >>"$GITHUB_ENV"
+          else
+            previous=$(tail -n2 <<<"$tags" | head -n1 | grep -vx "$tag" || true)
+          fi
+          # Git tags and GitHub Releases carry the core/ prefix. The version
+          # the binary reports doesn't.
+          {
+            echo "TAG=$tag"
+            echo "VERSION=${tag#core/}"
+            echo "PREVIOUS=$previous"
+          } >>"$GITHUB_ENV"
+
+      - name: Build
+        working-directory: core
+        run: |
+          mkdir -p ../dist
+          for target in $TARGETS; do
+            os=${target%/*}
+            arch=${target#*/}
+            build="$RUNNER_TEMP/$os-$arch"
+            mkdir -p "$build"
+            CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -trimpath \
+              -ldflags "-s -w -X github.com/jeremytondo/atelier/core/internal/version.Version=$VERSION" \
+              -o "$build/atelier" ./cmd/atelier
+            tar -czf "../dist/atelier_${os}_${arch}.tar.gz" -C "$build" atelier
+          done
+          # The binary for this runner reports the version it was stamped with.
+          test "$("$RUNNER_TEMP/linux-amd64/atelier" version)" = "$VERSION"
+          cd ../dist
+          sha256sum atelier_*.tar.gz >checksums.txt
+          cat checksums.txt
+
+      - name: Push the tag
+        if: env.NEW_TAG == 'true'
+        run: |
+          git tag "$TAG"
+          git push origin "$TAG"
+
+      - name: Publish the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          changes="First release."
+          if [ -n "$PREVIOUS" ]; then
+            changes="Changes since $PREVIOUS: https://github.com/$GITHUB_REPOSITORY/compare/$PREVIOUS...$TAG"
+          fi
+          # shellcheck disable=SC2016 # the notes quote literal backticks
+          printf -v notes '%s\n' \
+            "The Atelier core $VERSION, the \`atelier\` command, for Linux and macOS on amd64 and arm64." \
+            '' \
+            'Machines install and update it through mise, from their dotfiles:' \
+            '' \
+            '```toml' \
+            '"github:jeremytondo/atelier" = { version = "latest", version_prefix = "core/v", minimum_release_age = "0s" }' \
+            '```' \
+            '' \
+            "$changes"
+          files=(dist/atelier_*.tar.gz dist/checksums.txt)
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${files[@]}" --clobber
+          else
+            gh release create "$TAG" "${files[@]}" --verify-tag \
+              --title "Atelier core $VERSION" --notes "$notes"
+          fi

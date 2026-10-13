@@ -2,7 +2,7 @@
 
 Atelier for Linux is a personal, headless, image-based Linux system for workstations and VMs, built on [Fedora bootc](https://docs.fedoraproject.org/en-US/bootc/). Machines run a released image, download new versions in the background, apply them when the developer chooses, and can roll back.
 
-The image carries only the system. Development tools, mise itself and dotfiles live in the user's mise-managed environment. The one exception is a C toolchain, which mise can't provide. Machine details such as the hostname, user account and SSH keys come from provisioning: cloud-init on VMs, and a kickstart on bare metal.
+The image carries only the system. Development tools, mise itself, the [Atelier core](../core/README.md) and dotfiles live in the user's mise-managed environment. The one exception is a C toolchain, which mise can't provide. Machine details such as the hostname, user account and SSH keys come from provisioning: cloud-init on VMs, and a kickstart on bare metal.
 
 The image is public at `ghcr.io/jeremytondo/atelier-linux`. It must never contain secrets, user accounts, SSH keys or hostnames.
 
@@ -14,7 +14,7 @@ On top of `quay.io/fedora/fedora-bootc:44`, which already has openssh-server, po
 - **Browser libraries:** the system libraries Playwright's Chromium needs, such as nss, at-spi2, cups-libs, libgbm, pango and fontconfig. Playwright downloads the browser itself into the user's home directory, so the image has no browser.
 - **C toolchain:** gcc, g++, make and pkg-config, for building native code such as Rust crates. When a build needs a library's headers, add its `-devel` package to the `Containerfile`.
 - **Shell:** zsh is the default login shell for new users.
-- **First-login setup:** `atelier-setup`, and a login hook that starts it. See [Setting up a new machine](#setting-up-a-new-machine).
+- **First-login setup:** the `atelier-setup` bootstrap, and a login hook that starts it. See [Setting up a new machine](#setting-up-a-new-machine).
 - **SSH:** key authentication only. Password authentication and root login are rejected.
 - **SELinux:** enforcing, with `virt_qemu_ga_read_nonsecurity_files` on.
 - **ptrace:** `kernel.yama.ptrace_scope = 1`.
@@ -70,18 +70,30 @@ To check the image locally before releasing, run `mise run linux:build`. It buil
 
 To check a qcow2, run `mise run linux:boot-test <qcow2>`. It boots a throwaway copy in qemu the way Proxmox would, then checks over SSH that it tracks `:stable`, that cloud-init finished cleanly, that the root grew to fill the disk, and the image's settings. It also checks that SSH commands and scp never start first-login setup, while a login with a terminal does. It needs qemu with KVM, xorriso and jq.
 
+To run first-login setup for real as well, name the dotfiles repository:
+
+```sh
+BOOT_TEST_DOTFILES=jeremytondo/dotfiles mise run linux:boot-test <qcow2>
+```
+
+The VM then logs in with the host's gh login, adopts the dotfiles, and checks that `atelier version` runs from the tools they list. The dotfiles' history watcher may push from the VM until it stops.
+
 ## Setting up a new machine
 
-A new machine sets itself up the first time its user logs in interactively, over SSH or at the console. `atelier-setup` gets two things from the owner: a GitHub login and the GitHub repository that holds their dotfiles, a mise setup repository. The dotfiles do everything else. Setup runs these steps:
+A new machine sets itself up the first time its user logs in interactively, over SSH or at the console. Setup gets two things from the owner: a GitHub login and the GitHub repository that holds their dotfiles, a mise setup repository. The dotfiles do everything else.
 
-1. It installs mise in the home directory with mise's official installer, so `mise self-update` works.
-2. It installs gh through mise. The dotfiles' `gh = "latest"` then uses this same installation.
-3. It logs gh in to GitHub.
+The image's `atelier-setup` is a short bootstrap. It installs what setup needs, then hands off to `atelier setup` from the [Atelier core](../core/README.md), which does the rest. Setup runs these steps:
+
+1. The bootstrap installs mise in the home directory with mise's official installer, so `mise self-update` works.
+2. It installs gh and the Atelier core through mise, without writing mise's global config. The dotfiles' entries for them then use these same installations.
+3. It hands off to `atelier setup`, which logs gh in to GitHub.
 4. It asks for the dotfiles repository, as `OWNER/REPO` or a URL, and checks that it exists. It suggests `<your login>/dotfiles` when there is one, so Enter accepts it. The answer is kept in `~/.local/state/atelier/dotfiles` in case setup has to start again.
 5. It turns on linger, so the dotfile history watcher runs without a login session.
 6. It sets the login shell to zsh.
 7. It adopts the dotfiles with `mise bootstrap --adopt <repo> --take-remote-all`, which also installs the tools they list. Where a starter file differs, such as Fedora's `~/.zshrc` or gh's `config.yml`, the dotfiles' version replaces it. On a machine that already adopted them, setup runs `mise bootstrap` instead.
 8. It records that setup is done, in `~/.local/state/atelier/setup-done`, and starts a zsh login shell.
+
+The core updates on its own schedule, through `mise upgrade`, rather than with the image.
 
 On bare metal, setup shows a QR code for GitHub's device login, and a one-time code. Scan the QR code with your phone, enter the code and approve. Setup then continues on its own. If the code expires first, setup offers a new one.
 
@@ -197,7 +209,7 @@ Paths are from the repository root.
 | Path | Purpose |
 | -- | -- |
 | `linux/Containerfile` | The image: packages, configuration and the release marker |
-| `linux/system_files/` | Files copied into the image's root, including `atelier-setup` and its login hook |
+| `linux/system_files/` | Files copied into the image's root, including the `atelier-setup` bootstrap and its login hook |
 | `linux/scripts/boot-test` | The qemu boot test behind `mise run linux:boot-test` |
 | `mise.toml` | The `linux:` build, boot-test and release tasks |
 | `.github/workflows/linux-release.yml` | The release workflow and its weekly schedule |

@@ -1,5 +1,9 @@
 # Tasks are named after the part of Atelier they belong to: linux: for the
-# image in linux/.
+# image in linux/, core: for the Atelier core in core/.
+
+[tools]
+# The core's Go, matching core/go.mod.
+go = "1.26.7"
 
 [tasks."linux:build"]
 description = "Build the image locally as localhost/atelier-linux:local (runs bootc container lint)"
@@ -24,3 +28,25 @@ run = "gh workflow run linux-release.yml -f bump=major"
 [tasks."linux:release:dev"]
 description = "Rebuild :dev from main (pass --ref <branch> to build a pushed branch)"
 run = "gh workflow run linux-release.yml -f bump=dev"
+
+[tasks."core:build"]
+description = "Build atelier into core/bin/atelier"
+dir = "{{config_root}}/core"
+run = "CGO_ENABLED=0 go build -o bin/atelier ./cmd/atelier"
+
+[tasks."core:test"]
+description = "Vet the core and run its tests with the race detector"
+dir = "{{config_root}}/core"
+run = ["go vet ./...", "go test -race ./..."]
+
+[tasks."core:release:patch"]
+description = "Dispatch the Core release workflow to cut a patch release"
+run = "gh workflow run core-release.yml -f bump=patch"
+
+[tasks."core:release:minor"]
+description = "Dispatch the Core release workflow to cut a minor release"
+run = "gh workflow run core-release.yml -f bump=minor"
+
+[tasks."core:release:major"]
+description = "Dispatch the Core release workflow to cut a major release"
+run = "gh workflow run core-release.yml -f bump=major"
