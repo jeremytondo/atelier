@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+# Writes a complete kickstart that installs Atelier for Linux on one
+# bare-metal machine with no questions: it erases the named disk, installs the
+# image tracking :stable, and powers off. scripts/installer --kickstart builds
+# it into an installer ISO.
+#
+# Usage: scripts/kickstart --hostname NAME --disk DISK --output FILE
+#            [--user NAME] [--github LOGIN | --ssh-keys FILE] [--timezone ZONE]
+#
+# DISK is the installer's name for the disk to erase, such as nvme0n1 or
+# disk/by-id/nvme-..., and no other disk is touched. The user defaults to
+# this machine's, the SSH keys to the GitHub account gh is logged in as, and
+# the timezone to this machine's. The password is asked for twice, or read
+# from one line of standard input when it isn't a terminal.
+#
+# The kickstart holds the password's hash, so keep it off the repository.
+set -euo pipefail
+
+usage() {
+    sed -n 's/^# \{0,1\}//; 7,8p' "$0" >&2
+    exit 2
+}
+
+image=ghcr.io/jeremytondo/atelier-linux:stable
+hostname="" disk="" output="" user=$(id -un) github="" keys_file="" timezone=""
+while [ $# -gt 0 ]; do
+    case $1 in
+    --hostname) hostname=${2-} ;;
+    --disk) disk=${2-} ;;
+    --output) output=${2-} ;;
+    --user) user=${2-} ;;
+    --github) github=${2-} ;;
+    --ssh-keys) keys_file=${2-} ;;
+    --timezone) timezone=${2-} ;;
+    *) usage ;;
+    esac
+    [ $# -ge 2 ] || usage
+    shift 2
+done
+[ -n "$hostname" ] && [ -n "$disk" ] && [ -n "$output" ] || usage
+
+fail() {
+    echo "kickstart: $*" >&2
+    exit 1
+}
+[[ $hostname =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]] || fail "hostname $hostname: use lowercase letters, digits and hyphens"
+[[ $user =~ ^[a-z_][a-z0-9_-]*$ ]] || fail "user $user isn't a valid account name"
+disk=${disk#/dev/}
+[[ $disk =~ ^[A-Za-z0-9/._:-]+$ ]] || fail "disk $disk isn't a disk name"
+
+if [ -z "$timezone" ]; then
+    timezone=$(timedatectl show -p Timezone --value 2>/dev/null ||
+        readlink /etc/localtime | sed 's|.*/zoneinfo/||')
+fi
+[[ $timezone =~ ^[A-Za-z0-9/_+-]+$ ]] || fail "couldn't tell this machine's timezone; name one with --timezone"
+
+if [ -n "$keys_file" ]; then
+    keys=$(cat "$keys_file")
+else
+    if [ -z "$github" ]; then
+        github=$(gh api user --jq .login 2>/dev/null) || fail "name the GitHub account whose SSH keys to use with --github"
+    fi
+    keys=$(curl -fsSL "https://github.com/$github.keys") || fail "couldn't fetch $github's SSH keys from GitHub"
+fi
+keys=$(grep -E '^(ssh-|ecdsa-|sk-)' <<<"$keys" || true)
+[ -n "$keys" ] || fail "no SSH keys to install"
+
+openssl passwd -6 -stdin <<<check >/dev/null 2>&1 || fail "openssl can't make SHA-512 password hashes; install OpenSSL 1.1.1 or later"
+if [ -t 0 ]; then
+    read -rsp "Password for $user on $hostname: " password && echo >&2
+    read -rsp "Again: " again && echo >&2
+    [ "$password" = "$again" ] || fail "the passwords don't match"
+else
+    IFS= read -r password || true
+fi
+[ -n "$password" ] || fail "no password"
+hash=$(openssl passwd -6 -stdin <<<"$password")
+
+# Only its owner can read it, since it holds the password's hash. The umask
+# covers a new file, and chmod one being replaced.
+umask 077
+{
+    cat <<EOF
+# Atelier for Linux on $hostname, from \`mise run linux:kickstart\`.
+#
+# It erases $disk, and no other disk, installs Atelier for Linux tracking
+# $image, and powers off.
+text
+lang en_US.UTF-8
+keyboard us
+timezone $timezone
+network --bootproto=dhcp --activate --hostname=$hostname
+
+ignoredisk --only-use=$disk
+zerombr
+clearpart --all --initlabel
+autopart --type=plain --fstype=xfs --nohome --noswap
+
+# ostreecontainer, as Fedora's bootc docs and Universal Blue use. Fedora 44's
+# newer bootc command writes no /etc/fstab, so /boot and /home aren't
+# mounted, and leaves the users' homes without SELinux labels. The image
+# isn't signed, so there's no signature to check.
+ostreecontainer --url=$image --no-signature-verification
+
+rootpw --lock
+user --name=$user --groups=wheel --iscrypted --password=$hash
+EOF
+    while IFS= read -r key; do
+        printf 'sshkey --username=%s "%s"\n' "$user" "$key"
+    done <<<"$keys"
+    printf '\npoweroff\n'
+} >"$output"
+chmod 600 "$output"
+echo "Wrote $output for $user@$hostname, erasing $disk." >&2

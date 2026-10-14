@@ -18,7 +18,8 @@ import (
 )
 
 // The fakes log each call to $FAKE_DIR/log, and keep their state as files in
-// $FAKE_DIR: gh-installed, logged-in (holding the token) and zsh.
+// $FAKE_DIR: gh-installed, logged-in (holding the token), gh-keys (the
+// account's SSH keys), zsh and tailnet.
 const (
 	fakeMise = `#!/bin/sh
 echo "mise $*" >>"$FAKE_DIR/log"
@@ -48,10 +49,17 @@ case "$1 $2" in
 	esac
 	;;
 "api user") echo octo ;;
+"api users/octo/keys") [ ! -e "$FAKE_DIR/gh-keys" ] || cat "$FAKE_DIR/gh-keys" ;;
 esac
 `
 	fakeSudo = `#!/bin/sh
 echo "sudo $*" >>"$FAKE_DIR/log"
+`
+	fakeTailscale = `#!/bin/sh
+echo "tailscale $*" >>"$FAKE_DIR/log"
+state=NeedsLogin
+[ -e "$FAKE_DIR/tailnet" ] && state=Running
+echo "{\"BackendState\": \"$state\"}"
 `
 	fakeGetent = `#!/bin/sh
 echo "getent $*" >>"$FAKE_DIR/log"
@@ -77,7 +85,7 @@ func newFixture(t *testing.T) *fixture {
 			t.Fatal(err)
 		}
 	}
-	for name, script := range map[string]string{"mise": fakeMise, "gh": fakeGH, "sudo": fakeSudo, "getent": fakeGetent} {
+	for name, script := range map[string]string{"mise": fakeMise, "gh": fakeGH, "sudo": fakeSudo, "getent": fakeGetent, "tailscale": fakeTailscale} {
 		if err := os.WriteFile(filepath.Join(bin, name), []byte(script), 0o755); err != nil {
 			t.Fatal(err)
 		}
@@ -154,6 +162,7 @@ func TestRunWithToken(t *testing.T) {
 	f.opts.TokenStdin = true
 	f.opts.Token = "gho_secret"
 	f.opts.Dotfiles = "https://github.com/octo/dotfiles"
+	f.touch(t, filepath.Join(f.dir, "gh-keys"), "ssh-ed25519 AAAA octo\n")
 	ui := &fakeUI{}
 
 	if err := Run(context.Background(), f.opts, ui); err != nil {
@@ -167,6 +176,8 @@ func TestRunWithToken(t *testing.T) {
 		"mise exec gh@2.96.0 -- sh -c command -v \"$0\" gh",
 		"gh auth status --hostname github.com",
 		"gh auth login --hostname github.com --with-token",
+		"gh api user --jq .login",
+		"gh api users/octo/keys --jq .[].key",
 		"gh repo view https://github.com/octo/dotfiles --json nameWithOwner --jq .nameWithOwner",
 		"sudo -n loginctl enable-linger tester",
 		"getent passwd tester",
@@ -179,6 +190,8 @@ func TestRunWithToken(t *testing.T) {
 	wantShown := []string{
 		"==> Install gh",
 		"==> Log in to GitHub",
+		"==> Add SSH keys",
+		"Added the SSH keys on octo's GitHub account.",
 		"==> Choose the dotfiles",
 		"==> Turn on linger",
 		"==> Set the login shell to zsh",
@@ -196,6 +209,9 @@ func TestRunWithToken(t *testing.T) {
 		t.Errorf("dotfiles file = %q", got)
 	}
 	f.read(t, filepath.Join(state, "setup-done"))
+	if got := f.read(t, filepath.Join(f.home, ".ssh", "authorized_keys")); got != "ssh-ed25519 AAAA octo\n" {
+		t.Errorf("authorized_keys = %q", got)
+	}
 }
 
 func TestRunAgainSkipsWhatsDone(t *testing.T) {
@@ -206,6 +222,7 @@ func TestRunAgainSkipsWhatsDone(t *testing.T) {
 	f.touch(t, filepath.Join(f.dir, "linger", "tester"), "")
 	f.touch(t, filepath.Join(f.home, ".config", "mise", "config.toml"), "")
 	f.touch(t, filepath.Join(f.home, ".config", "mise", "config.local.toml"), "[history.origin]\n")
+	f.touch(t, filepath.Join(f.home, ".ssh", "authorized_keys"), "ssh-ed25519 AAAA octo\n")
 	ui := &fakeUI{}
 
 	if err := Run(context.Background(), f.opts, ui); err != nil {
@@ -225,6 +242,8 @@ func TestRunAgainSkipsWhatsDone(t *testing.T) {
 	wantShown := []string{
 		"==> Log in to GitHub",
 		"    gh is logged in to github.com",
+		"==> Add SSH keys",
+		"    ~/.ssh/authorized_keys has keys",
 		"==> Choose the dotfiles",
 		"    the dotfiles are adopted",
 		"==> Turn on linger",
@@ -245,12 +264,13 @@ func TestRunUsesDotfilesChosenEarlier(t *testing.T) {
 	f.touch(t, filepath.Join(f.dir, "gh-installed"), "")
 	f.touch(t, filepath.Join(f.dir, "logged-in"), "")
 	f.touch(t, filepath.Join(StateDir(f.home), "dotfiles"), "octo/dotfiles\n")
+	f.touch(t, filepath.Join(f.home, ".ssh", "authorized_keys"), "ssh-ed25519 AAAA octo\n")
 	ui := &fakeUI{}
 
 	if err := Run(context.Background(), f.opts, ui); err != nil {
 		t.Fatal(err)
 	}
-	if diff := cmp.Diff([]string{"==> Choose the dotfiles", "    using octo/dotfiles, chosen earlier"}, ui.shown[2:4]); diff != "" {
+	if diff := cmp.Diff([]string{"==> Choose the dotfiles", "    using octo/dotfiles, chosen earlier"}, ui.shown[4:6]); diff != "" {
 		t.Errorf("shown (-want +got):\n%s", diff)
 	}
 	if got := f.log(t); got[len(got)-1] != "mise bootstrap --adopt octo/dotfiles --take-remote-all --yes" {
@@ -360,6 +380,8 @@ func TestRunDeviceLoginAndAsk(t *testing.T) {
 	want := []string{
 		"==> Log in to GitHub",
 		"code ABCD-1234 at https://github.com/login/device",
+		"==> Add SSH keys",
+		"GitHub has no SSH keys for octo. Add one there, then run atelier-setup again to use it here.",
 		"==> Choose the dotfiles",
 		"? Dotfiles repository (OWNER/REPO) [octo/dotfiles]: ",
 		"gh repo view octo/missing --json nameWithOwner --jq .nameWithOwner: GraphQL: Could not resolve to a Repository",
@@ -370,5 +392,83 @@ func TestRunDeviceLoginAndAsk(t *testing.T) {
 	}
 	if got := f.read(t, filepath.Join(StateDir(f.home), "dotfiles")); got != "octo/dotfiles\n" {
 		t.Errorf("dotfiles file = %q", got)
+	}
+}
+
+func TestRunJoinsTailnet(t *testing.T) {
+	for _, tt := range []struct {
+		name        string
+		joined      bool
+		interactive bool
+		wantCalls   []string
+		wantShown   []string
+	}{
+		{
+			name:        "joins",
+			interactive: true,
+			wantCalls:   []string{"tailscale status --json", "sudo tailscale up --qr"},
+			wantShown:   []string{"==> Join the tailnet"},
+		},
+		{
+			name:        "already on it",
+			joined:      true,
+			interactive: true,
+			wantCalls:   []string{"tailscale status --json"},
+			wantShown:   []string{"==> Join the tailnet", "    this machine is on the tailnet"},
+		},
+		{
+			name:      "no one to approve it",
+			wantCalls: []string{"tailscale status --json"},
+			wantShown: []string{"==> Join the tailnet", "No one is here to approve it, so join later with: sudo tailscale up --qr"},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			f := newFixture(t)
+			f.touch(t, filepath.Join(f.dir, "gh-installed"), "")
+			f.touch(t, filepath.Join(f.dir, "logged-in"), "")
+			if tt.joined {
+				f.touch(t, filepath.Join(f.dir, "tailnet"), "")
+			}
+			f.touch(t, filepath.Join(f.home, ".ssh", "authorized_keys"), "ssh-ed25519 AAAA octo\n")
+			f.opts.Dotfiles = "octo/dotfiles"
+			f.opts.Interactive = tt.interactive
+			f.opts.Tailnet = true
+			ui := &fakeUI{}
+
+			if err := Run(context.Background(), f.opts, ui); err != nil {
+				t.Fatal(err)
+			}
+
+			// After the SSH keys, and before the dotfiles.
+			log := f.log(t)
+			if diff := cmp.Diff(tt.wantCalls, log[3:3+len(tt.wantCalls)]); diff != "" {
+				t.Errorf("calls (-want +got):\n%s", diff)
+			}
+			if diff := cmp.Diff(tt.wantShown, ui.shown[4:4+len(tt.wantShown)]); diff != "" {
+				t.Errorf("shown (-want +got):\n%s", diff)
+			}
+			if next := ui.shown[4+len(tt.wantShown)]; next != "==> Choose the dotfiles" {
+				t.Errorf("next step = %q", next)
+			}
+		})
+	}
+}
+
+func TestRunWithoutSSHKeysOnGitHub(t *testing.T) {
+	f := newFixture(t)
+	f.touch(t, filepath.Join(f.dir, "gh-installed"), "")
+	f.touch(t, filepath.Join(f.dir, "logged-in"), "")
+	f.opts.Dotfiles = "octo/dotfiles"
+	ui := &fakeUI{}
+
+	if err := Run(context.Background(), f.opts, ui); err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"==> Add SSH keys", "GitHub has no SSH keys for octo. Add one there, then run atelier-setup again to use it here."}
+	if diff := cmp.Diff(want, ui.shown[2:4]); diff != "" {
+		t.Errorf("shown (-want +got):\n%s", diff)
+	}
+	if _, err := os.Stat(filepath.Join(f.home, ".ssh", "authorized_keys")); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("setup wrote authorized_keys with no keys: %v", err)
 	}
 }

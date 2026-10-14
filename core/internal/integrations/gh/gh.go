@@ -40,3 +40,12 @@ func (g GH) RepoName(ctx context.Context, repo string) (string, error) {
 func (g GH) User(ctx context.Context) (string, error) {
 	return command.Output(ctx, g.Path, "api", "user", "--jq", ".login")
 }
+
+// SSHKeys returns the public SSH keys on a GitHub account.
+func (g GH) SSHKeys(ctx context.Context, login string) ([]string, error) {
+	out, err := command.Output(ctx, g.Path, "api", "users/"+login+"/keys", "--jq", ".[].key")
+	if err != nil || out == "" {
+		return nil, err
+	}
+	return strings.Split(out, "\n"), nil
+}

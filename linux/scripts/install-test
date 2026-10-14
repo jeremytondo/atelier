@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+# Installs Atelier for Linux the way a bare-metal machine does, in qemu, then
+# boots the installed disk and checks it over SSH. scripts/installer builds an
+# installer ISO with a complete kickstart from scripts/kickstart, and the
+# machine boots it under UEFI with nothing else attached, installs :stable
+# from the registry and powers off. A second disk checks that the install
+# touches only the one it names. Every disk is discarded afterwards.
+#
+# Usage: scripts/install-test [<Fedora netinstall ISO>]
+# The ISO defaults to the one scripts/installer downloads. Needs qemu, KVM,
+# UEFI firmware for qemu (edk2's OVMF), podman or docker, ssh, jq and openssl
+# on the host.
+set -euo pipefail
+
+port=${INSTALL_TEST_SSH_PORT:-2223}
+ovmf_code=${OVMF_CODE:-/usr/share/edk2/x64/OVMF_CODE.4m.fd}
+ovmf_vars=${OVMF_VARS:-/usr/share/edk2/x64/OVMF_VARS.4m.fd}
+stable=ghcr.io/jeremytondo/atelier-linux:stable
+user=tester
+hostname=install-test
+password=install-test
+here=$(dirname "$(realpath "$0")")
+
+work=$(mktemp -d)
+cleanup() {
+    [ -f "$work/qemu.pid" ] && kill "$(cat "$work/qemu.pid")" 2>/dev/null || true
+    rm -rf "$work"
+}
+trap cleanup EXIT
+
+ssh-keygen -q -t ed25519 -N "" -C install-test -f "$work/key"
+"$here/kickstart" --hostname "$hostname" --disk vda --user "$user" --ssh-keys "$work/key.pub" \
+    --timezone UTC --output "$work/ks.cfg" <<<"$password"
+# --serial puts the installer's console on the serial port, which the test
+# logs.
+"$here/installer" --kickstart "$work/ks.cfg" --serial --output "$work/installer.iso" \
+    ${1:+--fedora-iso "$1"}
+
+qemu-img create -q -f qcow2 "$work/disk.qcow2" 20G
+qemu-img create -q -f qcow2 "$work/other.qcow2" 1G
+cp "$ovmf_vars" "$work/vars.fd"
+# shellcheck disable=SC2054 # qemu options take comma-separated values
+machine=(-machine q35,accel=kvm -cpu host -smp 2 -m 4096
+    -drive if=pflash,format=raw,readonly=on,file="$ovmf_code"
+    -drive if=pflash,format=raw,file="$work/vars.fd"
+    -drive file="$work/disk.qcow2",if=virtio
+    -drive file="$work/other.qcow2",if=virtio
+    -device virtio-net-pci,netdev=net0 -display none)
+
+echo "Installing"
+if ! timeout 45m qemu-system-x86_64 "${machine[@]}" \
+    -netdev user,id=net0 \
+    -drive file="$work/installer.iso",media=cdrom,readonly=on \
+    -serial file:"$work/install.log" -no-reboot; then
+    echo "The install didn't finish. Installer console:"
+    tail -n 50 "$work/install.log"
+    exit 1
+fi
+
+qemu-system-x86_64 "${machine[@]}" \
+    -netdev user,id=net0,hostfwd=tcp:127.0.0.1:"$port"-:22 \
+    -serial file:"$work/console.log" \
+    -daemonize -pidfile "$work/qemu.pid"
+
+ssh_opts=(-i "$work/key" -o BatchMode=yes -o ConnectTimeout=5
+    -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR)
+vm() {
+    ssh "${ssh_opts[@]}" -p "$port" "$user@127.0.0.1" "$@"
+}
+# sudo with the kickstart's password, as on a real machine.
+vm_sudo() {
+    vm "printf '%s\n' '$password' | sudo -S -p '' $*"
+}
+
+echo "Waiting for SSH on port $port"
+for _ in $(seq 60); do
+    vm true 2>/dev/null && break
+    sleep 5
+done
+if ! vm true; then
+    echo "SSH never came up. Installer console, then boot console:"
+    tail -n 30 "$work/install.log"
+    tail -n 50 "$work/console.log"
+    exit 1
+fi
+
+failed=0
+check() {
+    if [ "$2" = "$3" ]; then
+        echo "PASS  $1"
+    else
+        echo "FAIL  $1: expected '$3', got '$2'"
+        failed=1
+    fi
+}
+
+check "booted with UEFI" "$(vm 'test -d /sys/firmware/efi && echo yes')" yes
+check "hostname" "$(vm hostname)" "$hostname"
+check "timezone" "$(vm timedatectl show -p Timezone --value)" UTC
+
+bootc=$(vm_sudo bootc status --json)
+check "bootc tracks :stable" "$(jq -r .spec.image.image <<<"$bootc")" "$stable"
+echo "      booted $(jq -r .status.booted.image.version <<<"$bootc") $(jq -r .status.booted.image.imageDigest <<<"$bootc")"
+check "bootc can check :stable for updates" "$(vm_sudo 'bootc upgrade --check >/dev/null 2>&1 && echo yes || echo no')" yes
+check "IMAGE_ID" "$(vm 'grep -h ^IMAGE_ID= /etc/os-release /usr/lib/os-release | head -1')" IMAGE_ID=atelier-linux
+
+check "root filesystem" "$(vm findmnt -no FSTYPE /sysroot)" xfs
+check "/boot is its own XFS partition" "$(vm findmnt -no FSTYPE /boot)" xfs
+check "the EFI partition is at /boot/efi" "$(vm findmnt -no FSTYPE /boot/efi)" vfat
+check "no failed units" "$(vm systemctl --failed --no-legend --plain | awk '{print $1}' | paste -sd' ')" ""
+check "root is on the named disk" "$(vm findmnt -no SOURCE /sysroot | grep -o '^/dev/vda')" /dev/vda
+check "the other disk is untouched" "$(vm lsblk -no NAME /dev/vdb | wc -l)" 1
+
+check "/var/home's SELinux type" "$(vm stat -c %C /var/home | cut -d: -f3)" home_root_t
+check "authorized_keys' SELinux type" "$(vm 'stat -c %C ~/.ssh/authorized_keys' | cut -d: -f3)" ssh_home_t
+check "the home directory's SELinux type" "$(vm 'stat -c %C ~' | cut -d: -f3)" user_home_dir_t
+check "the user is in wheel" "$(vm id -nG | tr ' ' '\n' | grep -x wheel)" wheel
+check "sudo needs the password" "$(vm 'sudo -n true 2>/dev/null && echo yes || echo no')" no
+check "sudo takes the password" "$(vm_sudo 'true && echo yes')" yes
+check "root's password is locked" "$(vm_sudo getent shadow root | cut -d: -f2 | cut -c1)" '!'
+check "login shell" "$(vm getent passwd "$user" | cut -d: -f7)" /usr/bin/zsh
+check "SSH password authentication" "$(vm_sudo sshd -T | awk '$1 == "passwordauthentication" {print $2}')" no
+check "cloud-init stays off" "$(vm_sudo cloud-init status | awk '{print $2}')" disabled
+check "atelier-setup" "$(vm command -v atelier-setup)" /usr/bin/atelier-setup
+
+if [ "$failed" -ne 0 ]; then
+    echo "Install test failed"
+    exit 1
+fi
+echo "Install test passed"

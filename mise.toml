@@ -13,6 +13,21 @@ run = "$(command -v podman || command -v docker) build --file linux/Containerfil
 description = "Boot a qcow2 in qemu with cloud-init and check it: mise run linux:boot-test <qcow2>"
 run = "linux/scripts/boot-test"
 
+[tasks."linux:installer"]
+description = "Build the installer ISO: mise run linux:installer --output FILE [--kickstart FILE]"
+# From where it's run, so paths are too.
+dir = "{{cwd}}"
+run = "{{config_root}}/linux/scripts/installer"
+
+[tasks."linux:kickstart"]
+description = "Write a complete kickstart for one bare-metal machine: mise run linux:kickstart --hostname NAME --disk DISK --output FILE"
+dir = "{{cwd}}"
+run = "{{config_root}}/linux/scripts/kickstart"
+
+[tasks."linux:install-test"]
+description = "Install from an installer ISO in qemu with a complete kickstart, and check it: mise run linux:install-test [<Fedora netinstall ISO>]"
+run = "linux/scripts/install-test"
+
 [tasks."linux:release:patch"]
 description = "Dispatch the Linux release workflow to cut a patch release"
 run = "gh workflow run linux-release.yml -f bump=patch"

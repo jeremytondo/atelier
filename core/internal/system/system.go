@@ -3,8 +3,10 @@ package system
 
 import (
 	"bufio"
+	"context"
 	"io"
 	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -49,4 +51,9 @@ func parseOSRelease(r io.Reader) map[string]string {
 		fields[key] = value
 	}
 	return fields
+}
+
+// VM reports whether the machine is a virtual machine rather than bare metal.
+func VM(ctx context.Context) bool {
+	return exec.CommandContext(ctx, "systemd-detect-virt", "--vm", "--quiet").Run() == nil
 }

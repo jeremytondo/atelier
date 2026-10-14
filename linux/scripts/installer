@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# Builds Atelier for Linux's installer ISO: Fedora's netinstall ISO with
+# linux/installer/atelier.ks built in, and linux/installer/updates added to
+# the installer. Fedora's installer, Anaconda, then installs
+# ghcr.io/jeremytondo/atelier-linux:stable, and asks for the disk, the user
+# and the rest on its usual screens.
+#
+# Usage: scripts/installer --output FILE [--kickstart FILE] [--fedora-iso FILE]
+#            [--serial]
+#
+# --kickstart builds in a complete kickstart instead, such as one from
+# scripts/kickstart, so the install asks nothing. Such an ISO erases its disk
+# as soon as it boots, so keep it to the machine it was made for.
+# --fedora-iso uses a netinstall ISO already downloaded. Otherwise the pinned
+# one is downloaded once, checked and cached. --serial puts the installer's
+# console on the first serial port, for tests.
+#
+# Needs podman or docker, which runs Fedora's mkksiso in a privileged
+# container, since it rebuilds the ISO's EFI boot image on a loop device.
+set -euo pipefail
+
+# The netinstall ISO of the Fedora release the image is built on.
+fedora=44
+fedora_iso=Fedora-Everything-netinst-x86_64-$fedora-1.7.iso
+fedora_url=https://download.fedoraproject.org/pub/fedora/linux/releases/$fedora/Everything/x86_64/iso/$fedora_iso
+fedora_sha256=bd285201494dd0ba09b54d05ac707de1401668b8512a573edb5922dcf9d7067e
+
+usage() {
+    sed -n 's/^# \{0,1\}//; 8,9p' "$0" >&2
+    exit 2
+}
+
+repo=$(realpath "$(dirname "$0")/../..")
+output="" kickstart=$repo/linux/installer/atelier.ks iso="" serial=0
+while [ $# -gt 0 ]; do
+    case $1 in
+    --output | --kickstart | --fedora-iso)
+        [ $# -ge 2 ] || usage
+        case $1 in
+        --output) output=$2 ;;
+        --kickstart) kickstart=$2 ;;
+        --fedora-iso) iso=$2 ;;
+        esac
+        shift
+        ;;
+    --serial) serial=1 ;;
+    *) usage ;;
+    esac
+    shift
+done
+[ -n "$output" ] && [ -n "$kickstart" ] || usage
+
+runtime=$(command -v podman || command -v docker) || {
+    echo "installer: needs podman or docker" >&2
+    exit 1
+}
+
+if [ -z "$iso" ]; then
+    cache=${XDG_CACHE_HOME:-$HOME/.cache}/atelier
+    iso=$cache/$fedora_iso
+    if [ ! -e "$iso" ]; then
+        mkdir -p "$cache"
+        echo "Downloading $fedora_iso" >&2
+        curl -fL --progress-bar -o "$iso.part" "$fedora_url"
+        mv "$iso.part" "$iso"
+    fi
+    if ! sha256sum -c --quiet <<<"$fedora_sha256  $iso"; then
+        echo "installer: $iso doesn't match its checksum; delete it to download it again" >&2
+        exit 1
+    fi
+fi
+iso=$(realpath "$iso")
+kickstart=$(realpath "$kickstart")
+mkdir -p "$(dirname "$output")"
+output=$(realpath "$output")
+
+# The boot menu starts the install by default, without checking the media
+# first, and names Atelier for Linux.
+args=(
+    -R 'set default="1"' 'set default="0"'
+    -R 'set timeout=60' 'set timeout=10'
+    -R "Install Fedora $fedora" 'Install Atelier for Linux'
+    -R "install Fedora $fedora" 'install Atelier for Linux'
+)
+[ "$serial" = 1 ] && args+=(-c console=ttyS0)
+
+# shellcheck disable=SC2016 # the container's shell expands the script
+"$runtime" run --rm --privileged \
+    --security-opt label=disable \
+    -v "$iso:/in/fedora.iso:ro" \
+    -v "$kickstart:/in/ks.cfg:ro" \
+    -v "$repo/linux/installer/updates:/in/updates:ro" \
+    -v "$(dirname "$output"):/out" \
+    quay.io/fedora/fedora:44 bash -euo pipefail -c '
+        dnf -y -q install lorax cpio >/dev/null
+        (cd /in/updates && find . -mindepth 1 | cpio --quiet -o -H newc | gzip) >/tmp/updates.img
+        mkksiso --ks /in/ks.cfg -u /tmp/updates.img "${@:2}" /in/fedora.iso "/out/$1.part"
+        chown "$(stat -c %u:%g /out)" "/out/$1.part"
+        mv "/out/$1.part" "/out/$1"
+    ' bash "$(basename "$output")" "${args[@]}"
+echo "Wrote $output" >&2

@@ -20,6 +20,7 @@ import (
 	"github.com/jeremytondo/atelier/core/internal/integrations/github"
 	"github.com/jeremytondo/atelier/core/internal/integrations/mise"
 	"github.com/jeremytondo/atelier/core/internal/setup"
+	"github.com/jeremytondo/atelier/core/internal/system"
 )
 
 const zsh = "/usr/bin/zsh"
@@ -39,7 +40,8 @@ func newSetupCmd() *cobra.Command {
 		Short: "Set up this machine for its user (Linux)",
 		Long: `Sets up this machine for its user: a GitHub login, then the owner's dotfiles,
 which bring the tools and everything else. On Atelier for Linux, the
-atelier-setup bootstrap installs mise, gh and atelier, then runs this.
+atelier-setup bootstrap installs mise, gh and atelier, then runs this. On bare
+metal, setup also joins the machine to the tailnet. VMs stay off it.
 
 Without --dotfiles, setup asks for the repository. With --token-stdin, setup
 asks nothing, so it needs --dotfiles too:
@@ -126,11 +128,13 @@ func runSetup(cmd *cobra.Command, flags setupFlags) error {
 	// Setup says so when it needs mise and there's none.
 	misePath, _ := mise.Find(home)
 	host, _ := os.Hostname()
+	_, linux := atelierLinux()
 	err = setup.Run(ctx, setup.Options{
 		Dotfiles:    flags.dotfiles,
 		TokenStdin:  flags.tokenStdin,
 		Token:       token,
 		Interactive: interactive,
+		Tailnet:     linux && !system.VM(ctx),
 		User:        me.Username,
 		Home:        home,
 		Shell:       zsh,
