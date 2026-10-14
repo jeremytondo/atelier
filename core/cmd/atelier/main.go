@@ -59,7 +59,7 @@ development environment.`,
 		SilenceErrors: true,
 		Args:          cobra.NoArgs,
 	}
-	root.AddCommand(newSetupCmd(), newVersionCmd())
+	root.AddCommand(newSetupCmd(), newOSCmd(), newVersionCmd())
 	return root
 }
 

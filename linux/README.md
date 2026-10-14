@@ -32,7 +32,7 @@ Atelier Core   v0.1.0
 Atelier Linux  v0.2.1
 ```
 
-Production images report `vX.Y.Z`. `dev` images report `dev-<commit>`. `bootc status` shows the image too, and `grep IMAGE_VERSION /etc/os-release` works before setup has installed the core.
+Production images report `vX.Y.Z`. `dev` images report `dev-<commit>`. `atelier os` and `bootc status` show it too, and `grep IMAGE_VERSION /etc/os-release` works before setup has installed the core.
 
 ## Releases
 
@@ -78,7 +78,7 @@ To run first-login setup for real as well, name the dotfiles repository:
 BOOT_TEST_DOTFILES=jeremytondo/dotfiles mise run linux:boot-test <qcow2>
 ```
 
-The VM's user then has the host's user name, since the dotfiles declare their owner's account. It logs in with the host's gh login, adopts the dotfiles, and checks that `atelier version` runs from the tools they list and names the image. The dotfiles' history watcher may push from the VM until it stops.
+The VM's user then has the host's user name, since the dotfiles declare their owner's account. It logs in with the host's gh login, adopts the dotfiles, and checks that `atelier version` runs from the tools they list and names the image, and that `atelier os` reads bootc and names the booted version. These use the core release the dotfiles list, so a new core command is checked once it's released. The dotfiles' history watcher may push from the VM until it stops.
 
 ## Setting up a new machine
 
@@ -129,21 +129,23 @@ Setup uses gh's own login, which covers all repositories and doesn't expire. VMs
 
 ## Updating a machine
 
-Machines track `:stable`. Every 8 hours or so, the update timer downloads any newer version without applying it. `bootc status` shows a downloaded update as staged.
+Machines follow `:stable`. Every 8 hours or so, the update timer downloads any newer version without applying it. `atelier os` shows what the machine runs:
 
-To apply it, run:
-
-```sh
-sudo bootc upgrade --from-downloaded --apply
+```console
+$ atelier os
+Channel     stable
+Booted      v0.2.1
+Downloaded  v0.2.2
+Rollback    v0.2.0
 ```
 
-This reboots into the new version. A downloaded update that's never applied is discarded at the next reboot and downloaded again afterwards.
-
-To fetch and apply right away, without waiting for the timer:
+To apply the downloaded update, run:
 
 ```sh
-sudo bootc upgrade --apply
+atelier os update
 ```
+
+When no update is waiting, it downloads one first. Then it asks before rebooting into the new version. `--reboot` reboots without asking. Without a terminal, as in `ssh <host> atelier os update`, it never reboots unless `--reboot` is given, and the new version starts at the next reboot. A downloaded update that's never applied is discarded at the next reboot and downloaded again afterwards.
 
 Updates and rollbacks never touch home directories, mise tools or project files.
 
@@ -152,33 +154,46 @@ Updates and rollbacks never touch home directories, mise tools or project files.
 To return to the previous version, run:
 
 ```sh
-sudo bootc rollback
-sudo systemctl reboot
+atelier os rollback
 ```
 
-bootc keeps one previous version. To go back further, switch to a specific release:
+Like `update`, it asks before rebooting. The update timer then downloads the newer version again, and `atelier os update` would bring it back.
+
+bootc keeps one previous version. To go back further, or to stay on an older version, switch to a specific release:
 
 ```sh
-sudo bootc switch ghcr.io/jeremytondo/atelier-linux:v1.2.3
+atelier os channel v1.2.3
 ```
 
-That machine then stays on `v1.2.3`. Switch back to `:stable` to resume updates.
+That machine then stays on `v1.2.3`. Switch back to `stable` to resume updates.
 
 ## Switching channels
 
 To test a `dev` build on one machine, run:
 
 ```sh
-sudo bootc switch ghcr.io/jeremytondo/atelier-linux:dev
-sudo systemctl reboot
+atelier os channel dev
 ```
 
 To return to `:stable`, run:
 
 ```sh
-sudo bootc switch ghcr.io/jeremytondo/atelier-linux:stable
-sudo systemctl reboot
+atelier os channel stable
 ```
+
+`atelier os channel` on its own shows the channel. A switch downloads the channel's image, then asks before rebooting into it, like `update`.
+
+## Without the core
+
+`atelier os` runs bootc through sudo. If the core is missing or broken, bootc does the same directly:
+
+| Task | Command |
+| -- | -- |
+| See what the machine runs | `sudo bootc status` |
+| Apply the downloaded update | `sudo bootc upgrade --from-downloaded --apply` |
+| Download and apply an update | `sudo bootc upgrade --apply` |
+| Roll back | `sudo bootc rollback --apply` |
+| Switch channels | `sudo bootc switch --apply ghcr.io/jeremytondo/atelier-linux:<channel>` |
 
 ## Adding a system package
 
@@ -187,7 +202,7 @@ System packages are never installed on a running machine. dnf refuses to install
 1. Add the package to the `dnf -y install` list in the `Containerfile`.
 2. Run `mise run linux:build` to check that it builds and lints.
 3. Commit and push, then run `mise run linux:release:dev`.
-4. Switch a machine to `:dev` and check the change.
+4. Switch a machine to `:dev` with `atelier os channel dev`, and check the change.
 5. Run `mise run linux:release:patch`, and switch the test machine back to `:stable`.
 
 Weak dependencies are left out of the image, since on a headless machine they're desktop pieces such as PipeWire and Vulkan drivers. If a package needs one of them, add it to the `Containerfile` by name. Watch the qcow2 size in the release summary: GitHub refuses release assets over 2 GiB.
@@ -202,7 +217,7 @@ A new Fedora major version is a change to the base tag in the `Containerfile`, f
 2. Release it to `:dev` and test it on one machine.
 3. Cut a production release. `mise run linux:release:minor` makes the jump visible in the version number.
 
-Machines receive it through the normal update path. If the new version misbehaves, `sudo bootc rollback` returns to the previous Fedora.
+Machines receive it through the normal update path. If the new version misbehaves, `atelier os rollback` returns to the previous Fedora.
 
 ## Files
 
