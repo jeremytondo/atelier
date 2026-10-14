@@ -3,13 +3,14 @@ name: Linux release
 # One workflow, one input, following ATC. patch/minor/major cut a production
 # release: the next version is computed from the remote's linux/ tags, the
 # commit is tagged linux/vX.Y.Z, and the image is built from it and pushed as
-# :vX.Y.Z and :stable, with a GitHub Release carrying the qcow2. dev rebuilds the dispatched ref
+# :vX.Y.Z and :stable, with a GitHub Release carrying the qcow2 and the
+# installer ISO. dev rebuilds the dispatched ref
 # and pushes the moving :dev tag only. The weekly schedule cuts a patch
 # release from main so Fedora's updates reach :stable.
 #
 # Production tags, images and releases are never moved, edited or deleted.
-# A failed production run never advances the version chain. The qcow2 is
-# built and checked before anything is published, so a run that fails up to
+# A failed production run never advances the version chain. The qcow2 and
+# the installer are built and checked before anything is published, so a run that fails up to
 # there leaves no trace. Once the tag is pushed, re-running resumes the
 # newest tag until its release is complete.
 
@@ -42,8 +43,8 @@ env:
   # Scheduled runs have no inputs.
   BUMP: ${{ inputs.bump || 'patch' }}
   # image-builder writes a zlib-compressed qcow2, which Proxmox imports like
-  # Fedora's cloud images. GitHub caps release assets at 2 GiB, and runs warn
-  # from WARN_ASSET_BYTES (90%) on.
+  # Fedora's cloud images. GitHub caps release assets, the qcow2 and the
+  # installer ISO, at 2 GiB, and runs warn from WARN_ASSET_BYTES (90%) on.
   IMAGE_BUILDER: ghcr.io/osbuild/image-builder-cli:v86.0.0
   MAX_ASSET_BYTES: "2147483648"
   WARN_ASSET_BYTES: "1932735283"
@@ -186,6 +187,27 @@ jobs:
           fi
           sha256sum "$qcow2" >"$qcow2.sha256"
 
+      - name: Build the installer
+        if: env.BUMP != 'dev'
+        run: |
+          # As root, since mkksiso rebuilds the ISO's EFI boot image on a loop
+          # device. It installs :stable from the registry, so it doesn't need
+          # this release's image.
+          iso="atelier-linux-installer-$VERSION.iso"
+          sudo linux/scripts/installer --output "output/$iso"
+          cd output
+          size=$(stat -c %s "$iso")
+          percent=$((size * 100 / MAX_ASSET_BYTES))
+          echo "Installer size: $size bytes ($percent% of GitHub's 2 GiB release-asset limit)" >>"$GITHUB_STEP_SUMMARY"
+          if [ "$size" -ge "$MAX_ASSET_BYTES" ]; then
+            echo "::error::$iso is $size bytes, over GitHub's 2 GiB release-asset limit"
+            exit 1
+          fi
+          if [ "$size" -ge "$WARN_ASSET_BYTES" ]; then
+            echo "::warning::$iso is $size bytes, $percent% of GitHub's 2 GiB release-asset limit"
+          fi
+          sha256sum "$iso" >"$iso.sha256"
+
       - name: Push the tag and the versioned image
         if: env.BUMP != 'dev'
         run: |
@@ -221,13 +243,18 @@ jobs:
             'Machines tracking `:stable` download this release in the background. To apply it:' \
             '' \
             '```sh' \
-            'sudo bootc upgrade --from-downloaded --apply' \
+            'atelier os update' \
             '```' \
             '' \
             'The qcow2 is the disk image for new VMs. It has no user, SSH key or hostname; cloud-init provides them.' \
             '' \
+            "The installer ISO installs \`:stable\` on bare metal with Fedora's installer, which asks for the disk, the user and the hostname." \
+            '' \
             "$changes"
-          files=("output/atelier-linux-$VERSION.qcow2" "output/atelier-linux-$VERSION.qcow2.sha256")
+          files=(
+            "output/atelier-linux-$VERSION.qcow2" "output/atelier-linux-$VERSION.qcow2.sha256"
+            "output/atelier-linux-installer-$VERSION.iso" "output/atelier-linux-installer-$VERSION.iso.sha256"
+          )
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "${files[@]}" --clobber
           else

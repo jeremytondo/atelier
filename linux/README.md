@@ -2,7 +2,7 @@
 
 Atelier for Linux is a personal, headless, image-based Linux system for workstations and VMs, built on [Fedora bootc](https://docs.fedoraproject.org/en-US/bootc/). Machines run a released image, download new versions in the background, apply them when the developer chooses, and can roll back.
 
-The image carries only the system. Development tools, mise itself, the [Atelier core](../core/README.md) and dotfiles live in the user's mise-managed environment. The one exception is a C toolchain, which mise can't provide. Machine details such as the hostname, user account and SSH keys come from provisioning: cloud-init on VMs, and a kickstart on bare metal.
+The image carries only the system. Development tools, mise itself, the [Atelier core](../core/README.md) and dotfiles live in the user's mise-managed environment. The one exception is a C toolchain, which mise can't provide. Machine details such as the hostname, user account and SSH keys come from provisioning: cloud-init on VMs, and the installer's questions on bare metal (see [Installing on bare metal](#installing-on-bare-metal)).
 
 The image is public at `ghcr.io/jeremytondo/atelier-linux`. It must never contain secrets, user accounts, SSH keys or hostnames.
 
@@ -22,7 +22,7 @@ On top of `quay.io/fedora/fedora-bootc:44`, which already has openssh-server, po
 - **Updates:** the bootc update timer downloads new versions but never applies them or reboots.
 - **Root filesystem:** XFS, for disk images and `bootc install`. In VMs, it grows to fill the disk at boot.
 
-cloud-init and qemu-guest-agent stay inactive on bare metal. Tailscale runs but joins the tailnet only when someone enrolls the machine.
+cloud-init and qemu-guest-agent stay inactive on bare metal. Tailscale runs everywhere, but only bare-metal machines join the tailnet, during first-login setup. VMs stay off it.
 
 Check which version a machine runs with `atelier version`, which also shows the Atelier core's version:
 
@@ -80,6 +80,60 @@ BOOT_TEST_DOTFILES=jeremytondo/dotfiles mise run linux:boot-test <qcow2>
 
 The VM's user then has the host's user name, since the dotfiles declare their owner's account. It logs in with the host's gh login, adopts the dotfiles, and checks that `atelier version` runs from the tools they list and names the image, and that `atelier os` reads bootc and names the booted version. These use the core release the dotfiles list, so a new core command is checked once it's released. The dotfiles' history watcher may push from the VM until it stops.
 
+## Installing on bare metal
+
+Each release includes an installer ISO, `atelier-linux-installer-vX.Y.Z.iso`. It's Fedora's netinstall ISO with a short kickstart built in. The kickstart only names the image, so Fedora's installer, Anaconda, installs Atelier for Linux and asks for everything else on its usual screens. Its screens say Fedora 44, since it's Fedora's installer.
+
+1. Download the installer from the latest release. Write it to a USB stick, or attach it as virtual media through the machine's remote management.
+2. Connect the machine to a wired network, and boot the installer with UEFI. After 10 seconds it starts **Install Atelier for Linux** on its own.
+3. Choose a language, then fill in the summary:
+   - **Installation Destination:** choose the disk. Automatic partitioning makes an EFI partition, `/boot` and one XFS root, like the qcow2. A disk that's already in use needs **Free up space** to make room.
+   - **User Creation:** your user and password. Leave it an administrator, so it can use sudo.
+   - **Network & Host Name:** the hostname. Otherwise it's `fedora`.
+   - **Time & Date:** the timezone.
+
+   Root stays disabled. Choose **Begin Installation**. The installer downloads `:stable`, about 1.3 GB, and installs it.
+4. Choose **Reboot System**, and remove the stick or detach the ISO.
+5. Log in at the console with your password. First-login setup starts. It logs in to GitHub, adds that account's SSH keys so SSH works from then on, and joins the machine to the tailnet.
+
+The installed machine tracks `:stable`, like one made from the qcow2.
+
+### Installing with no questions
+
+For a machine installed by script, write a complete kickstart for it and build it into an installer ISO of its own:
+
+```sh
+mise run linux:kickstart --hostname ws1 --disk nvme0n1 --output ws1.ks
+mise run linux:installer --kickstart ws1.ks --output ws1.iso
+```
+
+- `--disk` is the disk to erase, as the installer names it. No other disk is touched. A name from `/dev/disk/by-id`, such as `disk/by-id/nvme-Samsung_SSD_990_PRO_2TB_S7KHNJ0X123456`, can't pick the wrong disk.
+- `linux:kickstart` asks twice for the user's password, which is for sudo and the console. SSH takes keys only.
+- The user is the one running the task. `--user` names another.
+- The SSH keys are the ones on the GitHub account gh is logged in as. `--github LOGIN` names another account, and `--ssh-keys FILE` reads them from a file.
+- The timezone is this machine's. `--timezone` names another.
+
+The ISO installs as soon as it boots: it erases the disk, installs `:stable` and powers off. Detach it, then power on. Keep it to the machine it was made for. Both files hold the password's hash, so keep them out of the repository, and delete them once the machine is installed.
+
+### Building the installer
+
+A production release builds the installer with `mise run linux:installer --output <file>`. The task downloads Fedora's netinstall ISO once into `~/.cache/atelier` and checks it against its pinned checksum. `--fedora-iso` uses one already downloaded. The task runs Fedora's `mkksiso` in a privileged container, so it needs podman or docker.
+
+The installer adds two things to Fedora's ISO:
+
+- **`linux/installer/atelier.ks`**, the kickstart. It installs the image with Anaconda's `ostreecontainer` command, as [Fedora's bootc docs](https://docs.fedoraproject.org/en-US/bootc/bare-metal/) and Universal Blue's installers do. Fedora 44's newer `bootc` command writes no `/etc/fstab`, so `/boot` and `/home` aren't mounted, and it leaves the users' homes without SELinux labels.
+- **`linux/installer/updates/`**, Anaconda's settings, added as an updates image. They make automatic partitioning lay out an EFI partition, `/boot` and one XFS root, the layout of Fedora's bootc docs and the qcow2. Fedora's default is btrfs, whose root options can't be applied to the image's composefs root, so `systemd-remount-fs` fails at every boot. Universal Blue sets the same Anaconda storage settings for its installers, in its own profile.
+
+To check a change, run `mise run linux:install-test`. It builds an installer with a kickstart from `linux:kickstart`, and in qemu under UEFI, boots it with nothing else attached, the way a real machine does. It then boots the installed disk and checks it over SSH:
+
+- that it tracks `:stable` and can check it for updates;
+- the hostname, timezone and user;
+- the home directory's SELinux labels, the sudo password and the locked root account;
+- the XFS root on the named disk, `/boot` on its own partition and the EFI partition at `/boot/efi`;
+- that no units failed, and that a second disk is left untouched.
+
+It needs qemu with KVM, edk2's OVMF firmware, podman or docker, jq and openssl. Set `OVMF_CODE` and `OVMF_VARS` if the firmware isn't in `/usr/share/edk2/x64/`. The interactive screens aren't tested automatically. Check them by hand after changing `atelier.ks` or Anaconda's settings.
+
 ## Setting up a new machine
 
 A new machine sets itself up the first time its user logs in interactively, over SSH or at the console. Setup gets two things from the owner: a GitHub login and the GitHub repository that holds their dotfiles, a mise setup repository. The dotfiles do everything else.
@@ -89,15 +143,19 @@ The image's `atelier-setup` is a short bootstrap. It installs what setup needs, 
 1. The bootstrap installs mise in the home directory with mise's official installer, so `mise self-update` works.
 2. It installs gh and the Atelier core through mise, without writing mise's global config. The dotfiles' entries for them then use these same installations.
 3. It hands off to `atelier setup`, which logs gh in to GitHub.
-4. It asks for the dotfiles repository, as `OWNER/REPO` or a URL, and checks that it exists. It suggests `<your login>/dotfiles` when there is one, so Enter accepts it. The answer is kept in `~/.local/state/atelier/dotfiles` in case setup has to start again.
-5. It turns on linger, so the dotfile history watcher runs without a login session.
-6. It sets the login shell to zsh.
-7. It adopts the dotfiles with `mise bootstrap --adopt <repo> --take-remote-all`, which also installs the tools they list. Where a starter file differs, such as Fedora's `~/.zshrc` or gh's `config.yml`, the dotfiles' version replaces it. On a machine that already adopted them, setup runs `mise bootstrap` instead.
-8. It records that setup is done, in `~/.local/state/atelier/setup-done`, and starts a zsh login shell.
+4. If `~/.ssh/authorized_keys` has no keys, it adds the ones on the GitHub account. A machine from the installer starts with only a password, while VMs get keys from cloud-init.
+5. On bare metal, it joins the machine to the tailnet with `tailscale up --qr`. VMs skip this step.
+6. It asks for the dotfiles repository, as `OWNER/REPO` or a URL, and checks that it exists. It suggests `<your login>/dotfiles` when there is one, so Enter accepts it. The answer is kept in `~/.local/state/atelier/dotfiles` in case setup has to start again.
+7. It turns on linger, so the dotfile history watcher runs without a login session.
+8. It sets the login shell to zsh.
+9. It adopts the dotfiles with `mise bootstrap --adopt <repo> --take-remote-all`, which also installs the tools they list. Where a starter file differs, such as Fedora's `~/.zshrc` or gh's `config.yml`, the dotfiles' version replaces it. On a machine that already adopted them, setup runs `mise bootstrap` instead.
+10. It records that setup is done, in `~/.local/state/atelier/setup-done`, and starts a zsh login shell.
 
 The core updates on its own schedule, through `mise upgrade`, rather than with the image.
 
 On bare metal, setup shows a QR code for GitHub's device login, and a one-time code. Scan the QR code with your phone, enter the code and approve. Setup then continues on its own. If the code expires first, setup offers a new one.
+
+Tailscale then shows a QR code of its own. Scan it and approve the machine in Tailscale to add it to the tailnet. Setup tells VMs from bare metal with `systemd-detect-virt`. If no one is at the terminal, as with `--token-stdin`, setup leaves the tailnet for later. Join then with `sudo tailscale up --qr`.
 
 A VM can be set up with no prompts by handing it the workstation's gh login and naming the repository:
 
@@ -215,7 +273,8 @@ A new Fedora major version is a change to the base tag in the `Containerfile`, f
 
 1. Change the tag, and run `mise run linux:build`.
 2. Release it to `:dev` and test it on one machine.
-3. Cut a production release. `mise run linux:release:minor` makes the jump visible in the version number.
+3. Point `linux/scripts/installer` at the new release's netinstall ISO: its Fedora version, name and checksum. Run `mise run linux:install-test`, and check the interactive install by hand.
+4. Cut a production release. `mise run linux:release:minor` makes the jump visible in the version number.
 
 Machines receive it through the normal update path. If the new version misbehaves, `atelier os rollback` returns to the previous Fedora.
 
@@ -228,5 +287,9 @@ Paths are from the repository root.
 | `linux/Containerfile` | The image: packages, configuration and the release marker |
 | `linux/system_files/` | Files copied into the image's root, including the `atelier-setup` bootstrap and its login hook |
 | `linux/scripts/boot-test` | The qemu boot test behind `mise run linux:boot-test` |
-| `mise.toml` | The `linux:` build, boot-test and release tasks |
+| `linux/installer/` | The installer's kickstart and Anaconda's settings |
+| `linux/scripts/installer` | Builds the installer ISO, behind `mise run linux:installer` |
+| `linux/scripts/kickstart` | Writes a complete kickstart for one machine, behind `mise run linux:kickstart` |
+| `linux/scripts/install-test` | The qemu install test behind `mise run linux:install-test` |
+| `mise.toml` | The `linux:` build, test, installer and release tasks |
 | `.github/workflows/linux-release.yml` | The release workflow and its weekly schedule |

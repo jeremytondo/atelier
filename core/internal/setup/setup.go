@@ -1,6 +1,8 @@
 // Package setup sets up a Linux machine for its user. It needs two things from
 // the owner: a GitHub login, and the GitHub repository that holds their
-// dotfiles, a mise setup repository. The dotfiles do everything else.
+// dotfiles, a mise setup repository. The dotfiles do everything else. A
+// machine with no SSH keys gets the GitHub account's, and on bare metal, the
+// owner also approves the machine joining the tailnet.
 //
 // The atelier-setup bootstrap in the Linux image installs mise, gh and the
 // core, then hands off to this. Each step is skipped when its result is
@@ -21,6 +23,7 @@ import (
 	"github.com/jeremytondo/atelier/core/internal/integrations/gh"
 	"github.com/jeremytondo/atelier/core/internal/integrations/github"
 	"github.com/jeremytondo/atelier/core/internal/integrations/mise"
+	"github.com/jeremytondo/atelier/core/internal/integrations/tailscale"
 )
 
 var (
@@ -53,6 +56,9 @@ type Options struct {
 	Token      string
 	// Interactive means there's someone at a terminal to ask.
 	Interactive bool
+	// Tailnet means the machine joins the tailnet: Atelier for Linux on bare
+	// metal does, and VMs don't.
+	Tailnet bool
 
 	User string
 	Home string
@@ -119,11 +125,15 @@ func Run(ctx context.Context, opts Options, ui UI) error {
 	if err := s.findGH(ctx); err != nil {
 		return &StepError{"Install gh", err}
 	}
-	for _, step := range []struct {
+	type step struct {
 		name string
 		run  func(context.Context) error
-	}{
-		{"Log in to GitHub", s.logIn},
+	}
+	steps := []step{{"Log in to GitHub", s.logIn}, {"Add SSH keys", s.addSSHKeys}}
+	if opts.Tailnet {
+		steps = append(steps, step{"Join the tailnet", s.joinTailnet})
+	}
+	for _, step := range append(steps, []step{
 		{"Choose the dotfiles", s.chooseDotfiles},
 		{"Turn on linger", s.enableLinger},
 		{"Set the login shell to " + filepath.Base(opts.Shell), s.setShell},
@@ -131,7 +141,7 @@ func Run(ctx context.Context, opts Options, ui UI) error {
 		{"Record that setup is done", func(context.Context) error {
 			return os.WriteFile(filepath.Join(state, "setup-done"), nil, 0o644)
 		}},
-	} {
+	}...) {
 		ui.Step(step.name)
 		if err := step.run(ctx); err != nil {
 			return &StepError{step.name, err}
@@ -209,6 +219,64 @@ func (s *setup) logIn(ctx context.Context) error {
 			return err
 		}
 	}
+}
+
+// addSSHKeys lets the owner in over SSH with their GitHub account's keys,
+// when the machine has none. One installed from the installer ISO starts with
+// only a password, while VMs get keys from cloud-init.
+func (s *setup) addSSHKeys(ctx context.Context) error {
+	path := filepath.Join(s.opts.Home, ".ssh", "authorized_keys")
+	if hasKeys(path) {
+		s.ui.Already("~/.ssh/authorized_keys has keys")
+		return nil
+	}
+	login, err := s.gh.User(ctx)
+	if err != nil {
+		return err
+	}
+	keys, err := s.gh.SSHKeys(ctx, login)
+	if err != nil {
+		return err
+	}
+	if len(keys) == 0 {
+		s.ui.Say("GitHub has no SSH keys for " + login + ". Add one there, then run atelier-setup again to use it here.")
+		return nil
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		return err
+	}
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0o600)
+	if err != nil {
+		return err
+	}
+	if _, err := file.WriteString(strings.Join(keys, "\n") + "\n"); err != nil {
+		file.Close()
+		return err
+	}
+	if err := file.Close(); err != nil {
+		return err
+	}
+	s.ui.Say("Added the SSH keys on " + login + "'s GitHub account.")
+	return nil
+}
+
+// joinTailnet joins the machine to the tailnet. Tailscale shows its login
+// address as a QR code, and someone approves it, so a run with no one to ask
+// leaves it for later.
+func (s *setup) joinTailnet(ctx context.Context) error {
+	joined, err := tailscale.Joined(ctx)
+	if err != nil {
+		return err
+	}
+	if joined {
+		s.ui.Already("this machine is on the tailnet")
+		return nil
+	}
+	if !s.opts.Interactive {
+		s.ui.Say("No one is here to approve it, so join later with: sudo tailscale up --qr")
+		return nil
+	}
+	return s.asRoot(ctx, "tailscale", "up", "--qr")
 }
 
 // chooseDotfiles takes the repository from Options, an earlier run, or the
@@ -333,6 +401,20 @@ func lock(path string) (func(), error) {
 		return nil, err
 	}
 	return func() { file.Close() }, nil
+}
+
+// hasKeys reports whether an authorized_keys file lists a key.
+func hasKeys(path string) bool {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return false
+	}
+	for _, line := range strings.Split(string(data), "\n") {
+		if line = strings.TrimSpace(line); line != "" && !strings.HasPrefix(line, "#") {
+			return true
+		}
+	}
+	return false
 }
 
 func nonEmpty(path string) bool {
