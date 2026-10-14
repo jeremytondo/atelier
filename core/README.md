@@ -2,9 +2,10 @@
 
 The Atelier core is the part of Atelier that holds its logic and connects the other parts. Its first interface is the `atelier` command, a single Go binary for Linux and macOS.
 
-So far it does two things:
+So far it does three things:
 
 - `atelier setup` sets up a Linux machine for its user: a GitHub login, then the owner's dotfiles. On Atelier for Linux, the image's `atelier-setup` bootstrap installs the core and runs it on first login. See [Setting up a new machine](../linux/README.md#setting-up-a-new-machine).
+- `atelier os` shows and manages an Atelier for Linux machine's system through bootc: `update`, `channel` and `rollback`, each asking before it reboots. See [Updating a machine](../linux/README.md#updating-a-machine).
 - `atelier version` prints the versions of the parts of Atelier on the machine: the core, and on Atelier for Linux, the image.
 
 Run `atelier --help` for the details.
@@ -27,7 +28,8 @@ The Linux image never contains the core, so there's only ever one copy on the PA
 | -- | -- |
 | `cmd/atelier` | The command line. It only parses flags and talks to the terminal. |
 | `internal/setup` | Setting up a machine, step by step |
-| `internal/integrations/` | The programs and services the core drives: `mise`, `gh`, and GitHub's device login (`github`) |
+| `internal/linux` | An Atelier for Linux machine's system: its versions, updates, channel and rollback |
+| `internal/integrations/` | The programs and services the core drives: `mise`, `gh`, `bootc`, and GitHub's device login (`github`) |
 | `internal/command` | Running external programs |
 | `internal/system` | The machine the core runs on |
 | `internal/version` | The build's version |
