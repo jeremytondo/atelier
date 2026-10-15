@@ -162,6 +162,7 @@ func TestRunWithToken(t *testing.T) {
 	f.opts.TokenStdin = true
 	f.opts.Token = "gho_secret"
 	f.opts.Dotfiles = "https://github.com/octo/dotfiles"
+	f.opts.Role = "workstation"
 	f.touch(t, filepath.Join(f.dir, "gh-keys"), "ssh-ed25519 AAAA octo\n")
 	ui := &fakeUI{}
 
@@ -195,6 +196,7 @@ func TestRunWithToken(t *testing.T) {
 		"==> Choose the dotfiles",
 		"==> Turn on linger",
 		"==> Set the login shell to zsh",
+		"==> Choose the role",
 		"==> Adopt the dotfiles",
 		"==> Record that setup is done",
 	}
@@ -209,6 +211,9 @@ func TestRunWithToken(t *testing.T) {
 		t.Errorf("dotfiles file = %q", got)
 	}
 	f.read(t, filepath.Join(state, "setup-done"))
+	if got := f.read(t, filepath.Join(f.home, ".config", "mise", "miserc.local.toml")); !strings.Contains(got, "env = [\"workstation\"]\n") {
+		t.Errorf("miserc.local.toml = %q", got)
+	}
 	if got := f.read(t, filepath.Join(f.home, ".ssh", "authorized_keys")); got != "ssh-ed25519 AAAA octo\n" {
 		t.Errorf("authorized_keys = %q", got)
 	}
@@ -222,7 +227,9 @@ func TestRunAgainSkipsWhatsDone(t *testing.T) {
 	f.touch(t, filepath.Join(f.dir, "linger", "tester"), "")
 	f.touch(t, filepath.Join(f.home, ".config", "mise", "config.toml"), "")
 	f.touch(t, filepath.Join(f.home, ".config", "mise", "config.local.toml"), "[history.origin]\n")
+	f.touch(t, filepath.Join(f.home, ".config", "mise", "miserc.local.toml"), "env = []\n")
 	f.touch(t, filepath.Join(f.home, ".ssh", "authorized_keys"), "ssh-ed25519 AAAA octo\n")
+	f.opts.Role = "workstation"
 	ui := &fakeUI{}
 
 	if err := Run(context.Background(), f.opts, ui); err != nil {
@@ -250,12 +257,17 @@ func TestRunAgainSkipsWhatsDone(t *testing.T) {
 		"    linger is on",
 		"==> Set the login shell to zsh",
 		"    the login shell is zsh",
+		"==> Choose the role",
+		"    ~/.config/mise/miserc.local.toml already chooses this machine's modules",
 		"==> Adopt the dotfiles",
 		"    the dotfiles are adopted; bootstrapping again",
 		"==> Record that setup is done",
 	}
 	if diff := cmp.Diff(wantShown, ui.shown); diff != "" {
 		t.Errorf("shown (-want +got):\n%s", diff)
+	}
+	if got := f.read(t, filepath.Join(f.home, ".config", "mise", "miserc.local.toml")); got != "env = []\n" {
+		t.Errorf("miserc.local.toml = %q, want it unchanged", got)
 	}
 }
 

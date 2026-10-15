@@ -148,8 +148,9 @@ The image's `atelier-setup` is a short bootstrap. It installs what setup needs, 
 6. It asks for the dotfiles repository, as `OWNER/REPO` or a URL, and checks that it exists. It suggests `<your login>/dotfiles` when there is one, so Enter accepts it. The answer is kept in `~/.local/state/atelier/dotfiles` in case setup has to start again.
 7. It turns on linger, so the dotfile history watcher runs without a login session.
 8. It sets the login shell to zsh.
-9. It adopts the dotfiles with `mise bootstrap --adopt <repo> --take-remote-all`, which also installs the tools they list. Where a starter file differs, such as Fedora's `~/.zshrc` or gh's `config.yml`, the dotfiles' version replaces it. On a machine that already adopted them, setup runs `mise bootstrap` instead.
-10. It records that setup is done, in `~/.local/state/atelier/setup-done`, and starts a zsh login shell.
+9. It chooses the machine's role, `workstation`, since Atelier for Linux is headless. The role is a mise module: `~/.config/mise/miserc.local.toml` gets `env = ["workstation"]`, so mise also loads the dotfiles' `config.workstation.toml`, if they have one. A machine that already has the file keeps its own choice. See [Roles](#roles).
+10. It adopts the dotfiles with `mise bootstrap --adopt <repo> --take-remote-all`, which also installs the tools they list. Where a starter file differs, such as Fedora's `~/.zshrc` or gh's `config.yml`, the dotfiles' version replaces it. On a machine that already adopted them, setup runs `mise bootstrap` instead.
+11. It records that setup is done, in `~/.local/state/atelier/setup-done`, and starts a zsh login shell.
 
 The core updates on its own schedule, through `mise upgrade`, rather than with the image.
 
@@ -168,6 +169,24 @@ gh auth token | ssh <vm> atelier-setup --token-stdin --dotfiles jeremytondo/dotf
 Setup never accepts a token as an argument or an environment variable, and never prints one. The token is stored only in gh's login file, `~/.config/gh/hosts.yml`.
 
 If setup fails or is interrupted, it names the step that failed and leaves you in a plain shell. It starts again at the next interactive login, and skips the steps that already finished. You can also run `atelier-setup` by hand at any time. SSH commands, scp, sftp and remote editors never start it.
+
+### Roles
+
+A machine's role says how its owner uses it, and the dotfiles decide what each role gets. Roles are [mise modules](https://mise.jdx.dev/bootstrap/modules.html): a role's setup lives in the dotfiles as `config.<role>.toml`, beside `config.toml`, and each machine lists its roles in `~/.config/mise/miserc.local.toml`, which stays on the machine.
+
+| Role | Machine | Chosen by |
+| -- | -- | -- |
+| `workstation` | Headless, reached over SSH or through apps such as T3 Code. Every Atelier for Linux machine, and a headless Mac. | Setup, on Atelier for Linux. By hand elsewhere. |
+| none | One used at its own screen, such as a laptop. It gets only the shared `config.toml`. | |
+
+To give a machine a role by hand, such as a Mac, write the file before adopting the dotfiles, or run `mise bootstrap` after:
+
+```toml
+# ~/.config/mise/miserc.local.toml
+env = ["workstation"]
+```
+
+To take a role away, remove it from the list, then run `mise bootstrap unapply <role>`.
 
 ### Revoking GitHub access
 

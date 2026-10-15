@@ -6,6 +6,33 @@ import (
 	"testing"
 )
 
+func TestChooseModules(t *testing.T) {
+	home := t.TempDir()
+	wrote, err := ChooseModules(home, "workstation")
+	if err != nil || !wrote {
+		t.Fatalf("ChooseModules() = %v, %v, want true", wrote, err)
+	}
+	data, err := os.ReadFile(ModulesFile(home))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "# The dotfiles' modules this machine loads, config.<name>.toml each.\nenv = [\"workstation\"]\n"
+	if string(data) != want {
+		t.Errorf("modules file = %q, want %q", data, want)
+	}
+
+	// The owner's own choice stays.
+	if err := os.WriteFile(ModulesFile(home), []byte("env = []\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if wrote, err := ChooseModules(home, "workstation"); err != nil || wrote {
+		t.Fatalf("ChooseModules() again = %v, %v, want false", wrote, err)
+	}
+	if data, _ := os.ReadFile(ModulesFile(home)); string(data) != "env = []\n" {
+		t.Errorf("modules file = %q, want it unchanged", data)
+	}
+}
+
 func TestAdopted(t *testing.T) {
 	for name, tt := range map[string]struct {
 		files map[string]string

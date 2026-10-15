@@ -4,7 +4,7 @@ The Atelier core is the part of Atelier that holds its logic and connects the ot
 
 So far it does three things:
 
-- `atelier setup` sets up a Linux machine for its user: a GitHub login, then the owner's dotfiles. A machine with no SSH keys gets the GitHub account's, and bare-metal machines join the tailnet. On Atelier for Linux, the image's `atelier-setup` bootstrap installs the core and runs it on first login. See [Setting up a new machine](../linux/README.md#setting-up-a-new-machine).
+- `atelier setup` sets up a Linux machine for its user: a GitHub login, then the owner's dotfiles. A machine with no SSH keys gets the GitHub account's, bare-metal machines join the tailnet, and Atelier for Linux machines take the `workstation` role. On Atelier for Linux, the image's `atelier-setup` bootstrap installs the core and runs it on first login. See [Setting up a new machine](../linux/README.md#setting-up-a-new-machine).
 - `atelier os` shows and manages an Atelier for Linux machine's system through bootc: `update`, `channel` and `rollback`, each asking before it reboots. See [Updating a machine](../linux/README.md#updating-a-machine).
 - `atelier version` prints the versions of the parts of Atelier on the machine: the core, and on Atelier for Linux, the image.
 

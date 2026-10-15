@@ -6,10 +6,12 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/jeremytondo/atelier/core/internal/command"
@@ -82,6 +84,37 @@ func (m Mise) Adopt(ctx context.Context, repo string) error {
 // Bootstrap brings adopted dotfiles up to date and installs their tools.
 func (m Mise) Bootstrap(ctx context.Context) error {
 	return m.Run(ctx, m.Path, "bootstrap", "--yes")
+}
+
+// ModulesFile is where a machine chooses which of the dotfiles' optional
+// modules it loads, as mise's env list. Each module is a config.<name>.toml
+// beside the global config. The file is the machine's own: the dotfiles never
+// track it.
+func ModulesFile(home string) string {
+	return filepath.Join(home, ".config", "mise", "miserc.local.toml")
+}
+
+// ChooseModules writes ModulesFile with the given modules, unless it's
+// already there, in which case it's the owner's choice and stays as it is. It
+// reports whether it wrote the file. A module the dotfiles don't define loads
+// nothing.
+func ChooseModules(home string, modules ...string) (bool, error) {
+	path := ModulesFile(home)
+	if _, err := os.Stat(path); err == nil {
+		return false, nil
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return false, err
+	}
+	quoted := make([]string, len(modules))
+	for i, module := range modules {
+		quoted[i] = strconv.Quote(module)
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return false, err
+	}
+	content := "# The dotfiles' modules this machine loads, config.<name>.toml each.\n" +
+		"env = [" + strings.Join(quoted, ", ") + "]\n"
+	return true, os.WriteFile(path, []byte(content), 0o644)
 }
 
 // Adopted reports whether the dotfiles are adopted. Adoption records the

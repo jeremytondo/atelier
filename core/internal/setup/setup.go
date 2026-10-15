@@ -59,6 +59,10 @@ type Options struct {
 	// Tailnet means the machine joins the tailnet: Atelier for Linux on bare
 	// metal does, and VMs don't.
 	Tailnet bool
+	// Role is the machine's role, the dotfiles' module it loads: workstation
+	// on Atelier for Linux, which is always headless. When it's empty, setup
+	// leaves the choice to the owner.
+	Role string
 
 	User string
 	Home string
@@ -133,10 +137,15 @@ func Run(ctx context.Context, opts Options, ui UI) error {
 	if opts.Tailnet {
 		steps = append(steps, step{"Join the tailnet", s.joinTailnet})
 	}
-	for _, step := range append(steps, []step{
+	steps = append(steps, []step{
 		{"Choose the dotfiles", s.chooseDotfiles},
 		{"Turn on linger", s.enableLinger},
 		{"Set the login shell to " + filepath.Base(opts.Shell), s.setShell},
+	}...)
+	if opts.Role != "" {
+		steps = append(steps, step{"Choose the role", s.chooseRole})
+	}
+	for _, step := range append(steps, []step{
 		{"Adopt the dotfiles", s.adopt},
 		{"Record that setup is done", func(context.Context) error {
 			return os.WriteFile(filepath.Join(state, "setup-done"), nil, 0o644)
@@ -353,6 +362,20 @@ func (s *setup) setShell(ctx context.Context) error {
 		return nil
 	}
 	return s.asRoot(ctx, "usermod", "--shell", s.opts.Shell, s.opts.User)
+}
+
+// chooseRole selects the dotfiles' module for the machine's role before they
+// arrive, so the first bootstrap already applies it. A machine that has chosen
+// its modules keeps them.
+func (s *setup) chooseRole(context.Context) error {
+	wrote, err := mise.ChooseModules(s.opts.Home, s.opts.Role)
+	if err != nil {
+		return err
+	}
+	if !wrote {
+		s.ui.Already("~/.config/mise/miserc.local.toml already chooses this machine's modules")
+	}
+	return nil
 }
 
 func (s *setup) adopt(ctx context.Context) error {
