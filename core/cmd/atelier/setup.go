@@ -41,7 +41,8 @@ func newSetupCmd() *cobra.Command {
 		Long: `Sets up this machine for its user: a GitHub login, then the owner's dotfiles,
 which bring the tools and everything else. On Atelier for Linux, the
 atelier-setup bootstrap installs mise, gh and atelier, then runs this. On bare
-metal, setup also joins the machine to the tailnet. VMs stay off it.
+metal, setup also joins the machine to the tailnet. VMs stay off it. Atelier
+for Linux machines take the workstation role, the dotfiles' workstation module.
 
 Without --dotfiles, setup asks for the repository. With --token-stdin, setup
 asks nothing, so it needs --dotfiles too:
@@ -135,6 +136,7 @@ func runSetup(cmd *cobra.Command, flags setupFlags) error {
 		Token:       token,
 		Interactive: interactive,
 		Tailnet:     linux && !system.VM(ctx),
+		Role:        role(linux),
 		User:        me.Username,
 		Home:        home,
 		Shell:       zsh,
@@ -167,6 +169,15 @@ func runSetup(cmd *cobra.Command, flags setupFlags) error {
 		}
 	}
 	return nil
+}
+
+// role is the machine's role. Atelier for Linux is headless, so it's always a
+// workstation. Elsewhere, the owner chooses.
+func role(atelierLinux bool) string {
+	if atelierLinux {
+		return "workstation"
+	}
+	return ""
 }
 
 // execLoginShell replaces this process with a login shell, which releases the
