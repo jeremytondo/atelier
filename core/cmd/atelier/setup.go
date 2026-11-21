@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"syscall"
 
@@ -23,7 +24,17 @@ import (
 	"github.com/jeremytondo/atelier/core/internal/system"
 )
 
-const zsh = "/usr/bin/zsh"
+// macOS is whether this is a Mac.
+const macOS = runtime.GOOS == "darwin"
+
+// zsh is the shell setup starts once it's done, and on Linux, the login shell
+// it sets. A Mac comes with its own, in /bin.
+var zsh = func() string {
+	if macOS {
+		return "/bin/zsh"
+	}
+	return "/usr/bin/zsh"
+}()
 
 type setupFlags struct {
 	dotfiles   string
@@ -37,12 +48,18 @@ func newSetupCmd() *cobra.Command {
 	var flags setupFlags
 	cmd := &cobra.Command{
 		Use:   "setup [--dotfiles OWNER/REPO] [--token-stdin]",
-		Short: "Set up this machine for its user (Linux)",
+		Short: "Set up this machine for its user",
 		Long: `Sets up this machine for its user: a GitHub login, then the owner's dotfiles,
 which bring the tools and everything else. On Atelier for Linux, the
 atelier-setup bootstrap installs mise, gh and atelier, then runs this. On bare
 metal, setup also joins the machine to the tailnet. VMs stay off it. Atelier
 for Linux machines take the workstation role, the dotfiles' workstation module.
+
+On a Mac, Atelier's installer does what atelier-setup does:
+
+  curl -fsSL https://raw.githubusercontent.com/jeremytondo/atelier/main/core/install.sh | sh
+
+A Mac first installs Apple's Command Line Tools, for git.
 
 Without --dotfiles, setup asks for the repository. With --token-stdin, setup
 asks nothing, so it needs --dotfiles too:
@@ -130,6 +147,10 @@ func runSetup(cmd *cobra.Command, flags setupFlags) error {
 	misePath, _ := mise.Find(home)
 	host, _ := os.Hostname()
 	_, linux := atelierLinux()
+	lingerDir := "/var/lib/systemd/linger"
+	if macOS {
+		lingerDir = ""
+	}
 	err = setup.Run(ctx, setup.Options{
 		Dotfiles:    flags.dotfiles,
 		TokenStdin:  flags.tokenStdin,
@@ -137,10 +158,11 @@ func runSetup(cmd *cobra.Command, flags setupFlags) error {
 		Interactive: interactive,
 		Tailnet:     linux && !system.VM(ctx),
 		Role:        role(linux),
+		MacOS:       macOS,
 		User:        me.Username,
 		Home:        home,
 		Shell:       zsh,
-		LingerDir:   "/var/lib/systemd/linger",
+		LingerDir:   lingerDir,
 		MisePath:    misePath,
 		GitHub:      github.DeviceFlow{BaseURL: "https://github.com"},
 		Streams:     streams,
