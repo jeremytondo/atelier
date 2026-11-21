@@ -1,12 +1,13 @@
-// Package setup sets up a Linux machine for its user. It needs two things from
-// the owner: a GitHub login, and the GitHub repository that holds their
-// dotfiles, a mise setup repository. The dotfiles do everything else. A
-// machine with no SSH keys gets the GitHub account's, and on bare metal, the
-// owner also approves the machine joining the tailnet.
+// Package setup sets up a Linux machine or a Mac for its user. It needs two
+// things from the owner: a GitHub login, and the GitHub repository that holds
+// their dotfiles, a mise setup repository. The dotfiles do everything else. A
+// Linux machine with no SSH keys gets the GitHub account's, and on bare metal,
+// the owner also approves the machine joining the tailnet.
 //
 // The atelier-setup bootstrap in the Linux image installs mise, gh and the
-// core, then hands off to this. Each step is skipped when its result is
-// already there, so a run that failed or was interrupted can simply run again.
+// core, then hands off to this. On a Mac, the core's install.sh does the
+// same. Each step is skipped when its result is already there, so a run that
+// failed or was interrupted can simply run again.
 package setup
 
 import (
@@ -16,6 +17,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"golang.org/x/sys/unix"
 
@@ -24,6 +26,7 @@ import (
 	"github.com/jeremytondo/atelier/core/internal/integrations/github"
 	"github.com/jeremytondo/atelier/core/internal/integrations/mise"
 	"github.com/jeremytondo/atelier/core/internal/integrations/tailscale"
+	"github.com/jeremytondo/atelier/core/internal/integrations/xcode"
 )
 
 var (
@@ -63,12 +66,17 @@ type Options struct {
 	// on Atelier for Linux, which is always headless. When it's empty, setup
 	// leaves the choice to the owner.
 	Role string
+	// MacOS means the machine is a Mac. It needs Apple's Command Line Tools
+	// for git, isn't reached over SSH, has no linger, and already logs in to
+	// zsh.
+	MacOS bool
 
 	User string
 	Home string
-	// Shell is the login shell to set, /usr/bin/zsh.
+	// Shell is the login shell to set on Linux, /usr/bin/zsh.
 	Shell string
-	// LingerDir is where logind records linger, /var/lib/systemd/linger.
+	// LingerDir is where logind records linger, /var/lib/systemd/linger. A
+	// Mac has none.
 	LingerDir string
 	// MisePath is mise, or "" when it isn't installed.
 	MisePath string
@@ -115,7 +123,7 @@ func Run(ctx context.Context, opts Options, ui UI) error {
 	}
 
 	if opts.MisePath == "" {
-		return errors.New("mise isn't installed; run atelier-setup to install it")
+		return errors.New("mise isn't installed; atelier-setup on Atelier for Linux, or install.sh on a Mac, installs it")
 	}
 	if err := os.MkdirAll(state, 0o755); err != nil {
 		return err
@@ -133,15 +141,28 @@ func Run(ctx context.Context, opts Options, ui UI) error {
 		name string
 		run  func(context.Context) error
 	}
-	steps := []step{{"Log in to GitHub", s.logIn}, {"Add SSH keys", s.addSSHKeys}}
+	var steps []step
+	if opts.MacOS {
+		steps = append(steps, step{"Install the Command Line Tools", s.installCommandLineTools})
+	}
+	steps = append(steps, step{"Log in to GitHub", s.logIn})
+	// A Mac is where SSH sessions start, not where they arrive.
+	if !opts.MacOS {
+		steps = append(steps, step{"Add SSH keys", s.addSSHKeys})
+	}
 	if opts.Tailnet {
 		steps = append(steps, step{"Join the tailnet", s.joinTailnet})
 	}
-	steps = append(steps, []step{
-		{"Choose the dotfiles", s.chooseDotfiles},
-		{"Turn on linger", s.enableLinger},
-		{"Set the login shell to " + filepath.Base(opts.Shell), s.setShell},
-	}...)
+	steps = append(steps, step{"Choose the dotfiles", s.chooseDotfiles})
+	// A Mac's LaunchAgents, such as the dotfiles' history watcher, run while
+	// its user is logged in, with nothing to turn on. And zsh has been its
+	// login shell since macOS 10.15, so there's none to set.
+	if !opts.MacOS {
+		steps = append(steps,
+			step{"Turn on linger", s.enableLinger},
+			step{"Set the login shell to " + filepath.Base(opts.Shell), s.setShell},
+		)
+	}
 	if opts.Role != "" {
 		steps = append(steps, step{"Choose the role", s.chooseRole})
 	}
@@ -248,7 +269,7 @@ func (s *setup) addSSHKeys(ctx context.Context) error {
 		return err
 	}
 	if len(keys) == 0 {
-		s.ui.Say("GitHub has no SSH keys for " + login + ". Add one there, then run atelier-setup again to use it here.")
+		s.ui.Say("GitHub has no SSH keys for " + login + ". Add one there, then run setup again to use it here.")
 		return nil
 	}
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
@@ -351,6 +372,33 @@ func (s *setup) enableLinger(ctx context.Context) error {
 	}
 	return s.asRoot(ctx, "loginctl", "enable-linger", s.opts.User)
 }
+
+// installCommandLineTools installs Apple's Command Line Tools, which bring the
+// git that adopting the dotfiles needs. macOS installs them from a dialog on
+// the Mac's screen, so setup waits until they're there.
+func (s *setup) installCommandLineTools(ctx context.Context) error {
+	if xcode.Installed(ctx) {
+		s.ui.Already("the Command Line Tools are installed")
+		return nil
+	}
+	// It fails when an install is already under way, which is waited for
+	// all the same.
+	_ = xcode.Install(ctx)
+	s.ui.Say("Install the Command Line Tools from the dialog on this Mac's screen. Setup carries on once they're installed.\n" +
+		"If the dialog was closed, open it again with: xcode-select --install")
+	for !xcode.Installed(ctx) {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(commandLineToolsPoll):
+		}
+	}
+	return nil
+}
+
+// commandLineToolsPoll is how often setup checks whether the Command Line
+// Tools have finished installing.
+var commandLineToolsPoll = 5 * time.Second
 
 func (s *setup) setShell(ctx context.Context) error {
 	shell, err := LoginShell(ctx, s.opts.User)

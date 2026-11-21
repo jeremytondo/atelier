@@ -9,6 +9,8 @@ This repository holds Atelier's parts. Each part has its own directory, README a
 | Atelier for Linux | [`linux/`](linux/README.md) | The image-based Linux system for workstations and VMs, built on Fedora bootc |
 | The Atelier core | [`core/`](core/README.md) | The logic that connects the parts, used through the `atelier` command |
 
+To set up a new Mac, see [Setting up a Mac](core/README.md#setting-up-a-mac).
+
 The Mac app will move here as its own part. Dotfiles stay in their own private repository, since they're personal settings rather than part of Atelier.
 
 ## Tasks

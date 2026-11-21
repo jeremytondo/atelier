@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 
@@ -19,7 +20,8 @@ import (
 
 // The fakes log each call to $FAKE_DIR/log, and keep their state as files in
 // $FAKE_DIR: gh-installed, logged-in (holding the token), gh-keys (the
-// account's SSH keys), zsh and tailnet.
+// account's SSH keys), zsh, tailnet, and on a Mac, clt (the Command Line
+// Tools' developer directory) and clt-requested.
 const (
 	fakeMise = `#!/bin/sh
 echo "mise $*" >>"$FAKE_DIR/log"
@@ -67,6 +69,29 @@ shell=/bin/bash
 [ -e "$FAKE_DIR/zsh" ] && shell=/usr/bin/zsh
 echo "tester:x:1000:1000::$HOME:$shell"
 `
+	// An install that's been requested finishes on the second check after
+	// the request, so setup has to wait for it.
+	fakeXcodeSelect = `#!/bin/sh
+echo "xcode-select $*" >>"$FAKE_DIR/log"
+git=$FAKE_DIR/clt/usr/bin/git
+case $1 in
+--install) : >"$FAKE_DIR/clt-requested" ;;
+--print-path)
+	if [ -e "$FAKE_DIR/clt-requested" ] && [ ! -e "$git" ]; then
+		if [ -e "$FAKE_DIR/clt-checked" ]; then
+			mkdir -p "${git%/*}" && : >"$git"
+		else
+			: >"$FAKE_DIR/clt-checked"
+		fi
+	fi
+	if [ ! -e "$git" ]; then
+		echo "xcode-select: error: unable to get active developer directory" >&2
+		exit 2
+	fi
+	echo "$FAKE_DIR/clt"
+	;;
+esac
+`
 )
 
 type fixture struct {
@@ -85,7 +110,10 @@ func newFixture(t *testing.T) *fixture {
 			t.Fatal(err)
 		}
 	}
-	for name, script := range map[string]string{"mise": fakeMise, "gh": fakeGH, "sudo": fakeSudo, "getent": fakeGetent, "tailscale": fakeTailscale} {
+	for name, script := range map[string]string{
+		"mise": fakeMise, "gh": fakeGH, "sudo": fakeSudo, "getent": fakeGetent, "tailscale": fakeTailscale,
+		"xcode-select": fakeXcodeSelect,
+	} {
 		if err := os.WriteFile(filepath.Join(bin, name), []byte(script), 0o755); err != nil {
 			t.Fatal(err)
 		}
@@ -393,7 +421,7 @@ func TestRunDeviceLoginAndAsk(t *testing.T) {
 		"==> Log in to GitHub",
 		"code ABCD-1234 at https://github.com/login/device",
 		"==> Add SSH keys",
-		"GitHub has no SSH keys for octo. Add one there, then run atelier-setup again to use it here.",
+		"GitHub has no SSH keys for octo. Add one there, then run setup again to use it here.",
 		"==> Choose the dotfiles",
 		"? Dotfiles repository (OWNER/REPO) [octo/dotfiles]: ",
 		"gh repo view octo/missing --json nameWithOwner --jq .nameWithOwner: GraphQL: Could not resolve to a Repository",
@@ -476,11 +504,104 @@ func TestRunWithoutSSHKeysOnGitHub(t *testing.T) {
 	if err := Run(context.Background(), f.opts, ui); err != nil {
 		t.Fatal(err)
 	}
-	want := []string{"==> Add SSH keys", "GitHub has no SSH keys for octo. Add one there, then run atelier-setup again to use it here."}
+	want := []string{"==> Add SSH keys", "GitHub has no SSH keys for octo. Add one there, then run setup again to use it here."}
 	if diff := cmp.Diff(want, ui.shown[2:4]); diff != "" {
 		t.Errorf("shown (-want +got):\n%s", diff)
 	}
 	if _, err := os.Stat(filepath.Join(f.home, ".ssh", "authorized_keys")); !errors.Is(err, os.ErrNotExist) {
 		t.Errorf("setup wrote authorized_keys with no keys: %v", err)
+	}
+}
+
+// macFixture is a Mac's fixture, with no SSH keys to add, and no linger or
+// login shell to set.
+func macFixture(t *testing.T) *fixture {
+	t.Helper()
+	f := newFixture(t)
+	f.opts.MacOS = true
+	f.opts.Shell = ""
+	f.opts.LingerDir = ""
+	poll := commandLineToolsPoll
+	commandLineToolsPoll = time.Millisecond
+	t.Cleanup(func() { commandLineToolsPoll = poll })
+	return f
+}
+
+func TestRunOnMacOS(t *testing.T) {
+	f := macFixture(t)
+	f.touch(t, filepath.Join(f.dir, "gh-installed"), "")
+	f.opts.TokenStdin = true
+	f.opts.Token = "gho_secret"
+	f.opts.Dotfiles = "octo/dotfiles"
+	f.touch(t, filepath.Join(f.dir, "gh-keys"), "ssh-ed25519 AAAA octo\n")
+	ui := &fakeUI{}
+
+	if err := Run(context.Background(), f.opts, ui); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(f.home, ".ssh", "authorized_keys")); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("setup added SSH keys on a Mac: %v", err)
+	}
+
+	wantLog := []string{
+		"mise ls --installed --json gh",
+		"mise exec gh@2.96.0 -- sh -c command -v \"$0\" gh",
+		"xcode-select --print-path",
+		"xcode-select --install",
+		"xcode-select --print-path",
+		"xcode-select --print-path",
+		"gh auth status --hostname github.com",
+		"gh auth login --hostname github.com --with-token",
+		"gh repo view octo/dotfiles --json nameWithOwner --jq .nameWithOwner",
+		"mise bootstrap --adopt octo/dotfiles --take-remote-all --yes",
+	}
+	if diff := cmp.Diff(wantLog, f.log(t)); diff != "" {
+		t.Errorf("calls (-want +got):\n%s", diff)
+	}
+	wantShown := []string{
+		"==> Install the Command Line Tools",
+		"Install the Command Line Tools from the dialog on this Mac's screen. Setup carries on once they're installed.\n" +
+			"If the dialog was closed, open it again with: xcode-select --install",
+		"==> Log in to GitHub",
+		"==> Choose the dotfiles",
+		"==> Adopt the dotfiles",
+		"==> Record that setup is done",
+	}
+	if diff := cmp.Diff(wantShown, ui.shown); diff != "" {
+		t.Errorf("shown (-want +got):\n%s", diff)
+	}
+}
+
+func TestRunOnMacOSAgainSkipsWhatsDone(t *testing.T) {
+	f := macFixture(t)
+	f.touch(t, filepath.Join(f.dir, "gh-installed"), "")
+	f.touch(t, filepath.Join(f.dir, "logged-in"), "")
+	f.touch(t, filepath.Join(f.dir, "clt", "usr", "bin", "git"), "")
+	f.touch(t, filepath.Join(f.home, ".config", "mise", "config.toml"), "")
+	f.touch(t, filepath.Join(f.home, ".config", "mise", "config.local.toml"), "[history.origin]\n")
+	ui := &fakeUI{}
+
+	if err := Run(context.Background(), f.opts, ui); err != nil {
+		t.Fatal(err)
+	}
+
+	wantShown := []string{
+		"==> Install the Command Line Tools",
+		"    the Command Line Tools are installed",
+		"==> Log in to GitHub",
+		"    gh is logged in to github.com",
+		"==> Choose the dotfiles",
+		"    the dotfiles are adopted",
+		"==> Adopt the dotfiles",
+		"    the dotfiles are adopted; bootstrapping again",
+		"==> Record that setup is done",
+	}
+	if diff := cmp.Diff(wantShown, ui.shown); diff != "" {
+		t.Errorf("shown (-want +got):\n%s", diff)
+	}
+	for _, call := range f.log(t) {
+		if strings.HasPrefix(call, "xcode-select --install") || strings.HasPrefix(call, "sudo") {
+			t.Errorf("setup ran %q with nothing to do", call)
+		}
 	}
 }

@@ -1,7 +1,8 @@
 name: Core check
 
 # Vets, tests and builds the core on pull requests and pushes to main that
-# touch it.
+# touch it, on Linux and macOS, the two systems it runs on. Linux also lints
+# install.sh.
 
 on:
   pull_request:
@@ -21,7 +22,11 @@ permissions:
 
 jobs:
   check:
-    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, macos-15]
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -37,3 +42,6 @@ jobs:
             echo "::error::not gofmt-formatted: $unformatted"
             exit 1
           fi
+      - name: Lint install.sh
+        if: runner.os == 'Linux'
+        run: shellcheck --shell=sh core/install.sh
