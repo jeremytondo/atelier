@@ -381,9 +381,15 @@ func (s *setup) installCommandLineTools(ctx context.Context) error {
 		s.ui.Already("the Command Line Tools are installed")
 		return nil
 	}
-	// It fails when an install is already under way, which is waited for
-	// all the same.
-	_ = xcode.Install(ctx)
+	if err := xcode.Install(ctx); err != nil {
+		// No dialog opened, so there is nothing to wait for. Running setup
+		// again picks up an install that was already under way.
+		if xcode.Installed(ctx) {
+			return nil
+		}
+		s.ui.Say("Install the Command Line Tools with xcode-select --install, then run setup again.")
+		return err
+	}
 	s.ui.Say("Install the Command Line Tools from the dialog on this Mac's screen. Setup carries on once they're installed.\n" +
 		"If the dialog was closed, open it again with: xcode-select --install")
 	for !xcode.Installed(ctx) {

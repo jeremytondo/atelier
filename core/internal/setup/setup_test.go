@@ -75,11 +75,17 @@ echo "tester:x:1000:1000::$HOME:$shell"
 echo "xcode-select $*" >>"$FAKE_DIR/log"
 git=$FAKE_DIR/clt/usr/bin/git
 case $1 in
---install) : >"$FAKE_DIR/clt-requested" ;;
+--install)
+	if [ -e "$FAKE_DIR/clt-install-fails" ]; then
+		echo "xcode-select: error: can't install the software" >&2
+		exit 1
+	fi
+	: >"$FAKE_DIR/clt-requested"
+	;;
 --print-path)
 	if [ -e "$FAKE_DIR/clt-requested" ] && [ ! -e "$git" ]; then
 		if [ -e "$FAKE_DIR/clt-checked" ]; then
-			mkdir -p "${git%/*}" && : >"$git"
+			mkdir -p "${git%/*}" && : >"$git" && chmod +x "$git"
 		else
 			: >"$FAKE_DIR/clt-checked"
 		fi
@@ -137,6 +143,14 @@ func (f *fixture) touch(t *testing.T, path, content string) {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// executable makes the file at path one that can run.
+func (f *fixture) executable(t *testing.T, path string) {
+	t.Helper()
+	if err := os.Chmod(path, 0o755); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -577,6 +591,7 @@ func TestRunOnMacOSAgainSkipsWhatsDone(t *testing.T) {
 	f.touch(t, filepath.Join(f.dir, "gh-installed"), "")
 	f.touch(t, filepath.Join(f.dir, "logged-in"), "")
 	f.touch(t, filepath.Join(f.dir, "clt", "usr", "bin", "git"), "")
+	f.executable(t, filepath.Join(f.dir, "clt", "usr", "bin", "git"))
 	f.touch(t, filepath.Join(f.home, ".config", "mise", "config.toml"), "")
 	f.touch(t, filepath.Join(f.home, ".config", "mise", "config.local.toml"), "[history.origin]\n")
 	ui := &fakeUI{}
@@ -603,5 +618,49 @@ func TestRunOnMacOSAgainSkipsWhatsDone(t *testing.T) {
 		if strings.HasPrefix(call, "xcode-select --install") || strings.HasPrefix(call, "sudo") {
 			t.Errorf("setup ran %q with nothing to do", call)
 		}
+	}
+}
+
+func TestRunOnMacOSStopsWhenTheInstallCantStart(t *testing.T) {
+	for name, git := range map[string]bool{
+		"no Command Line Tools": false,
+		"a git that can't run":  true,
+	} {
+		t.Run(name, func(t *testing.T) {
+			f := macFixture(t)
+			f.touch(t, filepath.Join(f.dir, "gh-installed"), "")
+			f.touch(t, filepath.Join(f.dir, "clt-install-fails"), "")
+			f.opts.Dotfiles = "octo/dotfiles"
+			if git {
+				f.touch(t, filepath.Join(f.dir, "clt", "usr", "bin", "git"), "")
+			}
+			ui := &fakeUI{}
+
+			err := Run(context.Background(), f.opts, ui)
+			var stepErr *StepError
+			if !errors.As(err, &stepErr) || stepErr.Step != "Install the Command Line Tools" {
+				t.Fatalf("Run() = %v, want the Command Line Tools step to fail", err)
+			}
+			if !strings.Contains(err.Error(), "can't install the software") {
+				t.Errorf("Run() = %v, want xcode-select's reason", err)
+			}
+			wantShown := []string{
+				"==> Install the Command Line Tools",
+				"Install the Command Line Tools with xcode-select --install, then run setup again.",
+			}
+			if diff := cmp.Diff(wantShown, ui.shown); diff != "" {
+				t.Errorf("shown (-want +got):\n%s", diff)
+			}
+			wantLog := []string{
+				"mise ls --installed --json gh",
+				"mise exec gh@2.96.0 -- sh -c command -v \"$0\" gh",
+				"xcode-select --print-path",
+				"xcode-select --install",
+				"xcode-select --print-path",
+			}
+			if diff := cmp.Diff(wantLog, f.log(t)); diff != "" {
+				t.Errorf("calls (-want +got):\n%s", diff)
+			}
+		})
 	}
 }

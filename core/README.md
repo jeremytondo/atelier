@@ -35,7 +35,7 @@ curl -fsSL https://raw.githubusercontent.com/jeremytondo/atelier/main/core/insta
 Setup then does the following:
 
 1. It installs Apple's Command Line Tools. macOS asks first, in a dialog on the Mac's screen, and setup waits until the install finishes. If the dialog is closed, `xcode-select --install` opens it again.
-2. It logs in to GitHub with a device code: open the address it shows, or scan its QR code when `qrencode` is installed, and enter the code. gh keeps the login in the Keychain, and git uses it over HTTPS.
+2. It logs in to GitHub with a device code: open the address it shows, or scan its QR code when `qrencode` is installed, and enter the code. gh keeps the login in the Keychain, or in a plain-text file when it can't (`gh auth status` says which), and git uses it over HTTPS.
 3. It asks for the dotfiles repository, suggesting `<login>/dotfiles`.
 4. It adopts the dotfiles, which install the tools, the core among them.
 
