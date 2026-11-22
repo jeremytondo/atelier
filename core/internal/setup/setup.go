@@ -433,11 +433,16 @@ func (s *setup) chooseRole(context.Context) error {
 }
 
 func (s *setup) adopt(ctx context.Context) error {
+	token, err := s.gh.Token(ctx)
+	if err != nil {
+		return err
+	}
+	m := s.mise.WithGitHubToken(token)
 	if mise.Adopted(s.opts.Home) {
 		s.ui.Already("the dotfiles are adopted; bootstrapping again")
-		return s.mise.Bootstrap(ctx)
+		return m.Bootstrap(ctx)
 	}
-	return s.mise.Adopt(ctx, s.dotfiles)
+	return m.Adopt(ctx, s.dotfiles)
 }
 
 // asRoot runs a command with sudo, which may ask for a password unless a

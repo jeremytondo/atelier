@@ -30,6 +30,12 @@ func (g GH) LogIn(ctx context.Context, token string) error {
 	return g.WithStdin(strings.NewReader(token+"\n")).Run(ctx, g.Path, "auth", "login", "--hostname", Host, "--with-token")
 }
 
+// Token returns the token of gh's login to github.com, wherever gh keeps it:
+// in its hosts.yml, or in the system keyring, as on a Mac.
+func (g GH) Token(ctx context.Context) (string, error) {
+	return command.Output(ctx, g.Path, "auth", "token", "--hostname", Host)
+}
+
 // RepoName returns GitHub's name for a repository given as OWNER/REPO or a
 // URL, and fails when it doesn't exist.
 func (g GH) RepoName(ctx context.Context, repo string) (string, error) {

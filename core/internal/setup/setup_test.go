@@ -20,8 +20,9 @@ import (
 
 // The fakes log each call to $FAKE_DIR/log, and keep their state as files in
 // $FAKE_DIR: gh-installed, logged-in (holding the token), gh-keys (the
-// account's SSH keys), zsh, tailnet, and on a Mac, clt (the Command Line
-// Tools' developer directory) and clt-requested.
+// account's SSH keys), zsh, tailnet, mise-token (the GitHub token mise was
+// given), and on a Mac, clt (the Command Line Tools' developer directory) and
+// clt-requested.
 const (
 	fakeMise = `#!/bin/sh
 echo "mise $*" >>"$FAKE_DIR/log"
@@ -30,6 +31,7 @@ ls) if [ -e "$FAKE_DIR/gh-installed" ]; then echo '[{"version":"2.95.0"},{"versi
 install) touch "$FAKE_DIR/gh-installed" ;;
 exec) echo "$FAKE_DIR/bin/gh" ;;
 bootstrap)
+	printf %s "$MISE_GITHUB_TOKEN" >"$FAKE_DIR/mise-token"
 	if [ "$2" = --adopt ]; then
 		mkdir -p "$HOME/.config/mise"
 		printf '[history.origin]\nurl = "x"\n' >"$HOME/.config/mise/config.local.toml"
@@ -43,6 +45,7 @@ echo "gh $*" >>"$FAKE_DIR/log"
 case "$1 $2" in
 "auth status") [ -e "$FAKE_DIR/logged-in" ] ;;
 "auth login") cat >"$FAKE_DIR/logged-in" ;;
+"auth token") cat "$FAKE_DIR/logged-in" ;;
 "repo view")
 	case $3 in
 	*/missing) echo "GraphQL: Could not resolve to a Repository" >&2; exit 1 ;;
@@ -127,6 +130,10 @@ func newFixture(t *testing.T) *fixture {
 	t.Setenv("FAKE_DIR", dir)
 	t.Setenv("HOME", home)
 	t.Setenv("PATH", bin+":"+os.Getenv("PATH"))
+	// A token in the environment would be mise's, not gh's.
+	for _, name := range []string{"MISE_GITHUB_TOKEN", "GITHUB_API_TOKEN", "GITHUB_TOKEN"} {
+		t.Setenv(name, "")
+	}
 	return &fixture{dir: dir, home: home, opts: Options{
 		User:      "tester",
 		Home:      home,
@@ -225,6 +232,7 @@ func TestRunWithToken(t *testing.T) {
 		"sudo -n loginctl enable-linger tester",
 		"getent passwd tester",
 		"sudo -n usermod --shell /usr/bin/zsh tester",
+		"gh auth token --hostname github.com",
 		"mise bootstrap --adopt octo/dotfiles --take-remote-all --yes",
 	}
 	if diff := cmp.Diff(wantLog, f.log(t)); diff != "" {
@@ -283,6 +291,7 @@ func TestRunAgainSkipsWhatsDone(t *testing.T) {
 		"mise exec gh@2.96.0 -- sh -c command -v \"$0\" gh",
 		"gh auth status --hostname github.com",
 		"getent passwd tester",
+		"gh auth token --hostname github.com",
 		"mise bootstrap --yes",
 	}
 	if diff := cmp.Diff(wantLog, f.log(t)); diff != "" {
@@ -567,10 +576,15 @@ func TestRunOnMacOS(t *testing.T) {
 		"gh auth status --hostname github.com",
 		"gh auth login --hostname github.com --with-token",
 		"gh repo view octo/dotfiles --json nameWithOwner --jq .nameWithOwner",
+		"gh auth token --hostname github.com",
 		"mise bootstrap --adopt octo/dotfiles --take-remote-all --yes",
 	}
 	if diff := cmp.Diff(wantLog, f.log(t)); diff != "" {
 		t.Errorf("calls (-want +got):\n%s", diff)
+	}
+	// A Mac's gh keeps its login in the Keychain, where mise's git can't find it.
+	if got := f.read(t, filepath.Join(f.dir, "mise-token")); got != "gho_secret" {
+		t.Errorf("mise was given the token %q, want gh's", got)
 	}
 	wantShown := []string{
 		"==> Install the Command Line Tools",
@@ -662,5 +676,22 @@ func TestRunOnMacOSStopsWhenTheInstallCantStart(t *testing.T) {
 				t.Errorf("calls (-want +got):\n%s", diff)
 			}
 		})
+	}
+}
+
+func TestRunLeavesMiseTheTokenInTheEnvironment(t *testing.T) {
+	f := macFixture(t)
+	f.touch(t, filepath.Join(f.dir, "gh-installed"), "")
+	f.touch(t, filepath.Join(f.dir, "logged-in"), "gho_secret\n")
+	f.touch(t, filepath.Join(f.dir, "clt", "usr", "bin", "git"), "")
+	f.executable(t, filepath.Join(f.dir, "clt", "usr", "bin", "git"))
+	f.opts.Dotfiles = "octo/dotfiles"
+	t.Setenv("GITHUB_TOKEN", "ghp_environment")
+
+	if err := Run(context.Background(), f.opts, &fakeUI{}); err != nil {
+		t.Fatal(err)
+	}
+	if got := f.read(t, filepath.Join(f.dir, "mise-token")); got != "" {
+		t.Errorf("mise was given the token %q, want it to use GITHUB_TOKEN", got)
 	}
 }
