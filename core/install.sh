@@ -34,8 +34,10 @@ main() {
     mise=$HOME/.local/bin/mise
     # The core is released from the Atelier repository with core/vX.Y.Z
     # tags, beside the Linux image's linux/vX.Y.Z. mise holds back releases
-    # younger than a day unless told not to, so a new machine always gets the
-    # newest core.
+    # younger than a day unless told not to, and lists GitHub releases from
+    # its mise-versions cache, which refreshes on a schedule. Asking GitHub
+    # directly, without either, gets a new machine the newest core, even one
+    # released minutes ago.
     core="github:jeremytondo/atelier[version_prefix=core/v]@latest"
     export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
 
@@ -65,7 +67,7 @@ main() {
     fi
 
     echo "==> Install the Atelier core"
-    "$mise" install --minimum-release-age 0s "$core" </dev/null
+    MISE_USE_VERSIONS_HOST=false "$mise" install --minimum-release-age 0s "$core" </dev/null
     atelier=$("$mise" where "$core" </dev/null)/atelier
     if [ ! -x "$atelier" ]; then
         echo "Atelier's installer: can't find atelier in $core" >&2

@@ -148,7 +148,9 @@ install_core() {
         already "the Atelier core is installed"
         return
     fi
-    "$mise" install --minimum-release-age 0s "$core_latest" </dev/null 9>&-
+    # Straight from GitHub, not the mise-versions cache, which refreshes on a
+    # schedule, so a core released minutes ago is the one installed.
+    MISE_USE_VERSIONS_HOST=false "$mise" install --minimum-release-age 0s "$core_latest" </dev/null 9>&-
 }
 
 step "Install mise" install_mise
