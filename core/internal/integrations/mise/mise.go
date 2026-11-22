@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -74,11 +75,26 @@ func (m Mise) Which(ctx context.Context, tool, version, program string) (string,
 // Adopt adopts the dotfiles from a GitHub repository, then installs the tools
 // they list. A fresh machine's starter files, such as ~/.zshrc and gh's
 // config.yml, differ from the dotfiles, so the dotfiles' versions replace
-// them, and mise saves each one first. mise gives its own git commands a
-// credential helper that reads gh's login, so the download and the history
-// watcher's pushes need nothing more.
+// them, and mise saves each one first. mise's git commands authenticate with
+// mise's own GitHub token; see WithGitHubToken.
 func (m Mise) Adopt(ctx context.Context, repo string) error {
 	return m.Run(ctx, m.Path, "bootstrap", "--adopt", repo, "--take-remote-all", "--yes")
+}
+
+// WithGitHubToken returns mise with a GitHub token in its environment, unless
+// the environment already has one. mise's own git commands, which download
+// and sync the dotfiles, find a token only in the environment, mise's own
+// GitHub login, its github_tokens.toml, or gh's hosts.yml. gh keeps its login
+// in hosts.yml on Linux, but in the Keychain on a Mac, where git would ask for
+// a password instead.
+func (m Mise) WithGitHubToken(token string) Mise {
+	for _, name := range []string{"MISE_GITHUB_TOKEN", "GITHUB_API_TOKEN", "GITHUB_TOKEN"} {
+		if os.Getenv(name) != "" {
+			return m
+		}
+	}
+	m.Env = append(slices.Clip(m.Env), "MISE_GITHUB_TOKEN="+token)
+	return m
 }
 
 // Bootstrap brings adopted dotfiles up to date and installs their tools.

@@ -21,12 +21,17 @@ type Streams struct {
 	Stdin  io.Reader
 	Stdout io.Writer
 	Stderr io.Writer
+	// Env is added to the environment the program inherits.
+	Env []string
 }
 
 // Run runs a program on the streams.
 func (s Streams) Run(ctx context.Context, name string, args ...string) error {
 	cmd := exec.CommandContext(ctx, name, args...)
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = s.Stdin, s.Stdout, s.Stderr
+	if len(s.Env) > 0 {
+		cmd.Env = append(cmd.Environ(), s.Env...)
+	}
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("%s: %w", describe(name, args), err)
 	}
